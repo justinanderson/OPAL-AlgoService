@@ -1,0 +1,44 @@
+{
+  "name": "opal-algobank",
+  "version": "0.0.1",
+  "description": "OPAL - Algobank micro-service",
+  "main": "./src/opalAlgobank.js",
+  "scripts": {
+    "start": "node ./src/index.js",
+    "lint": "eslint src",
+    "test": "jest --runInBand --verbose --useStderr --forceExit"
+  },
+  "keywords": [
+    "OPAL",
+    "AlgoBank"
+  ],
+  "contributors": [
+    "Axel Oehmichen <axelfrancois.oehmichen11@imperial.ac.uk>"
+  ],
+  "license": "MIT",
+  "readme": "README.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aoehmichen/OPAL-AlgoBank"
+  },
+  "bugs": {
+    "url": "https://github.com/aoehmichen/OPAL-AlgoBank/issues"
+  },
+  "homepage": "https://github.com/aoehmichen/OPAL-AlgoBank#readme",
+  "devDependencies": {
+    "babel-core": "6.26.0",
+    "babel-eslint": "^8.1.2",
+    "babel-preset-es2015": "6.24.1",
+    "babel-preset-stage-0": "6.24.1",
+    "eslint": "4.15.0",
+    "jest": "^22.0.4",
+    "request": "^2.83.0"
+  },
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "eae-utils": "git+https://github.com/dsi-icl/eae-utils.git",
+    "express": "^4.16.2",
+    "fs-extra": "^5.0.0",
+    "mongodb": "^2.2.34"
+  }
+}
