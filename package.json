@@ -5,6 +5,7 @@
   "main": "./src/opalAlgobank.js",
   "scripts": {
     "start": "node ./src/index.js",
+    "inspect": "node inspect ./src/index.js",
     "lint": "eslint src",
     "test": "jest --runInBand --verbose --useStderr --forceExit"
   },
