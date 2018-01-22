@@ -1,6 +1,7 @@
 
 module.exports = {
-    mongoURL: 'mongodb://127.0.0.1:27017/opal',
+    mongoURL: 'mongodb://mongodb/opal',
     port: 3001,
-	enableCors: true
+	enableCors: true,
+    serviceType: 'opal-algobank'
 };
