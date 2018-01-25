@@ -1,1 +1,1 @@
-# OPAL-AlgoBank
+# OPAL-AlgoService

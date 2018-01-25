@@ -1,7 +1,7 @@
 {
-  "name": "opal-algobank",
+  "name": "opal-algoservice",
   "version": "0.0.1",
-  "description": "OPAL - Algobank micro-service",
+  "description": "OPAL - AlgoServicemicro-service",
   "main": "./src/opalAlgobank.js",
   "scripts": {
     "start": "node ./src/index.js",
@@ -14,18 +14,19 @@
     "AlgoBank"
   ],
   "contributors": [
-    "Axel Oehmichen <axelfrancois.oehmichen11@imperial.ac.uk>"
+      "Shubham Jain <shubhamjain0594@gmail.com>",
+      "Axel Oehmichen <axelfrancois.oehmichen11@imperial.ac.uk>"
   ],
   "license": "MIT",
   "readme": "README.md",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aoehmichen/OPAL-AlgoBank"
+    "url": "git+https://github.com/aoehmichen/OPAL-AlgoService"
   },
   "bugs": {
-    "url": "https://github.com/aoehmichen/OPAL-AlgoBank/issues"
+    "url": "https://github.com/aoehmichen/OPAL-AlgoService/issues"
   },
-  "homepage": "https://github.com/aoehmichen/OPAL-AlgoBank#readme",
+  "homepage": "https://github.com/aoehmichen/OPAL-AlgoService#readme",
   "devDependencies": {
     "babel-core": "6.26.0",
     "babel-eslint": "^8.1.2",
