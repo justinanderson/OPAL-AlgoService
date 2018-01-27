@@ -5,7 +5,7 @@ const { ErrorHelper } = require('eae-utils');
  * @class FieldChecker
  * @desc Abstract class for checking fields of the request.
  * @param fieldName {String} name of the field
- * @param algoCollection MongoDB collection of algorithms
+ * @param algoCollection MongoDb collection of algorithms
  * @constructor
  */
 function FieldChecker(fieldName, algoCollection) {
@@ -20,14 +20,21 @@ function FieldChecker(fieldName, algoCollection) {
     this._checkPOST = FieldChecker.prototype._checkPOST.bind(this);
     this._checkUPDATE = FieldChecker.prototype._checkUPDATE.bind(this);
     this._checkDELETE = FieldChecker.prototype._checkDELETE.bind(this);
-
-    // map request type to function
-    this._checkerReq2FuncsMap = new Map();
-    this._checkerReq2FuncsMap.set('get', this._checkGET);
-    this._checkerReq2FuncsMap.set('post', this._checkPOST);
-    this._checkerReq2FuncsMap.set('update', this._checkUPDATE);
-    this._checkerReq2FuncsMap.set('delete', this._checkDELETE);
 }
+
+/**
+ * @fn setup
+ * @desc Setup the fieldChecker.
+ */
+FieldChecker.prototype.setup = function () {
+    let _this = this;
+    // map request type to function
+    _this._checkerReq2FuncsMap = new Map();
+    _this._checkerReq2FuncsMap.set('get', this._checkGET);
+    _this._checkerReq2FuncsMap.set('post', this._checkPOST);
+    _this._checkerReq2FuncsMap.set('update', this._checkUPDATE);
+    _this._checkerReq2FuncsMap.set('delete', this._checkDELETE);
+};
 
 /**
  * @fn check
@@ -47,15 +54,16 @@ FieldChecker.prototype.check = function (req, reqType) {
                 .then(function(success){
                     resolve(success);
                 }, function(error){
-                    reject(ErrorHelper('Invalid `' + _this._fieldName + '`.'), error);
+                    reject(ErrorHelper('Invalid `' + _this._fieldName + '`.', error));
+                });
+        } else {
+            _this._checkerReq2FuncsMap.get(reqType)(req)
+                .then(function(success) {
+                    resolve(success);
+                }, function(error) {
+                    reject(ErrorHelper('Invalid `' + _this._fieldName + '`.', error));
                 });
         }
-        _this._checkerReq2FuncsMap.get(reqType)
-            .then(function(success) {
-                resolve(success);
-            }, function(error) {
-                reject(ErrorHelper('Invalid `' + _this._fieldName + '`.'), error);
-            });
     });
 };
 

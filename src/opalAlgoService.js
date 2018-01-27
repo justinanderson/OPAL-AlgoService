@@ -6,21 +6,22 @@ const { ErrorHelper, StatusHelper, Constants } =  require('eae-utils');
 
 const package_json = require('../package.json');
 const StatusController = require('./statusController.js');
+const AlgoController = require('./algoController.js');
 
 
-function OpalAlgobank(config) {
+function OpalAlgoService(config) {
     // Initialize member attributes.
     this.config = config;
     this.app = express();
-    global.opal_algobank_config = config;
+    global.opal_algoservice_config = config;
 
     // bind public member functions
-    this.start = OpalAlgobank.prototype.start.bind(this);
-    this.stop = OpalAlgobank.prototype.stop.bind(this);
+    this.start = OpalAlgoService.prototype.start.bind(this);
+    this.stop = OpalAlgoService.prototype.stop.bind(this);
 
     // bind private member functions
-    this._connectDb = OpalAlgobank.prototype._connectDb.bind(this);
-    this._setupStatusController = OpalAlgobank.prototype._setupStatusController.bind(this);
+    this._connectDb = OpalAlgoService.prototype._connectDb.bind(this);
+    this._setupStatusController = OpalAlgoService.prototype._setupStatusController.bind(this);
 
     // Remove unwanted express headers
     this.app.set('x-powered-by', false);
@@ -44,13 +45,13 @@ function OpalAlgobank(config) {
  * @return {Promise} Resolves to express app if successful,
  * else rejects with an error stack
  */
-OpalAlgobank.prototype.start = function() {
+OpalAlgoService.prototype.start = function() {
     let _this = this;
     return new Promise(function (resolve, reject) {
         _this._connectDb().then(function () {
             // Setup route using controllers
             _this._setupStatusController();
-            // _this._setupJobController();
+            _this._setupAlgoController();
 
             // Start status periodic update
             _this.status_helper.startPeriodicUpdate(5 * 1000); // Update status every 5 seconds
@@ -64,11 +65,11 @@ OpalAlgobank.prototype.start = function() {
 
 /**
  * @fn stop
- * @desc Stop the opal algobank service
+ * @desc Stop the opal algoservice service
  * @return {Promise} Resolves to true on success,
  * rejects an error stack otherwise
  */
-OpalAlgobank.prototype.stop = function() {
+OpalAlgoService.prototype.stop = function() {
     let _this = this;
     return new Promise(function (resolve, reject) {
         // Disconnect DB --force
@@ -87,7 +88,7 @@ OpalAlgobank.prototype.stop = function() {
  * @return {Promise} Resolves to true on success
  * @private
  */
-OpalAlgobank.prototype._connectDb = function() {
+OpalAlgoService.prototype._connectDb = function() {
     let _this = this;
     return new Promise(function (resolve, reject) {
         mongodb.connect(_this.config.mongoURL, function (err, db) {
@@ -105,14 +106,14 @@ OpalAlgobank.prototype._connectDb = function() {
  * @fn _setupStatusController
  * @desc Initialize status service routes and controller
  */
-OpalAlgobank.prototype._setupStatusController = function () {
+OpalAlgoService.prototype._setupStatusController = function () {
     let _this = this;
 
     let statusOpts = {
         version: package_json.version
     };
     _this.status_helper = new StatusHelper(
-        global.opal_algobank_config.serviceType, global.opal_algobank_config.port, null, statusOpts);
+        global.opal_algoservice_config.serviceType, global.opal_algoservice_config.port, null, statusOpts);
     _this.status_helper.setCollection(_this.db.collection(Constants.EAE_COLLECTION_STATUS));
 
     _this.statusController = new StatusController(_this.status_helper);
@@ -120,4 +121,10 @@ OpalAlgobank.prototype._setupStatusController = function () {
     _this.app.get('/specs', _this.statusController.getFullStatus); // GET Full status
 };
 
-module.exports = OpalAlgobank;
+OpalAlgoService.prototype._setupAlgoController = function() {
+    let _this = this;
+    _this.algoController = new AlgoController(_this.db.collection(global.opal_algoservice_config.collectionName), _this.status_helper);
+    _this.app.post('/add', _this.algoController.addAlgo); // POST new algorithm
+};
+
+module.exports = OpalAlgoService;

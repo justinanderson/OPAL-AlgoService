@@ -2,17 +2,17 @@ let express = require('express');
 let os = require('os');
 let app = express();
 
-let config = require('../config/opal.algobank.config.js');
-let OpalAlgobank = require('./opalAlgobank.js');
+let config = require('../config/opal.algoservice.config.js');
+let OpalAlgoService = require('./opalAlgoService.js');
 
 //Remove unwanted express headers
 app.set('x-powered-by', false);
 
 let options = Object.assign({}, config);
-let algobank = new OpalAlgobank(options);
+let algoservice = new OpalAlgoService(options);
 
-algobank.start().then(function(algobank_router) {
-    app.use(algobank_router);
+algoservice.start().then(function(algoservice_router) {
+    app.use(algoservice_router);
     app.listen(config.port, function (error) {
         if (error) {
             console.error(error); // eslint-disable-line no-console

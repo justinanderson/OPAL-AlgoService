@@ -1,5 +1,5 @@
 // Check if request is valid.
-const { ErrorHelper, Constants } = require('eae-utils');
+const { ErrorHelper } = require('eae-utils');
 
 /**
  * @class RequestChecker
@@ -13,8 +13,8 @@ function RequestChecker(reqType, algoCollection) {
     this._algoCollection = algoCollection;
 
     this.setupFieldCheckers = RequestChecker.prototype.setupFieldCheckers.bind(this);
-
-    this.fieldCheckersArray = this.setupFieldCheckers();
+    this.setup = RequestChecker.prototype.setup.bind(this);
+    this.checkRequest = RequestChecker.prototype.checkRequest.bind(this);
 }
 
 /**
@@ -24,7 +24,16 @@ function RequestChecker(reqType, algoCollection) {
  */
 RequestChecker.prototype.setupFieldCheckers = function() {
     throw 'Pure method should be implemented in the child class';
-}
+};
+
+/**
+ * @fn setup
+ * @desc Setup the request checker.
+ */
+RequestChecker.prototype.setup = function(){
+    let _this = this;
+    _this.fieldCheckersArray = this.setupFieldCheckers();
+};
 
 /**
  * @fn checkRequest
@@ -36,14 +45,18 @@ RequestChecker.prototype.checkRequest = function (req) {
     let _this = this;
 
     return new Promise(function(resolve, reject){
-        for (const [fieldName, fieldChecker] in _this.fieldCheckersArray.entries()){
-            fieldChecker.check(req, _this.reqType)
+        for (const entry of _this.fieldCheckersArray.entries()){
+            let fieldName, fieldChecker;
+            fieldName = entry[0];
+            fieldChecker = entry[1];
+            fieldChecker.check(req, _this._reqType)
                 .then(function(success){
-                    console.log('Valid field ' + fieldName); // eslint-disable-line no-console
+                    resolve(success);
                 }, function(error){
                     reject(ErrorHelper('Check for field ' + fieldName + ' failed', error));
-                })
+                });
         }
-        resolve(true);
     });
-}
+};
+
+module.exports = RequestChecker;

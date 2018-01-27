@@ -1,5 +1,6 @@
 // Controls interaction with algorithm bank
-const { Constants, ErrorHelper } =  require('eae-utils');
+const { ErrorHelper } =  require('eae-utils');
+const PostRequestChecker = require('./postRequestChecker.js');
 
 /**
  * @class AlgoController
@@ -11,6 +12,9 @@ const { Constants, ErrorHelper } =  require('eae-utils');
 function AlgoController(algoCollection, statusHelper) {
     this._algoCollection = algoCollection;
     this._statusHelper = statusHelper;
+
+    this.postRequestChecker = new PostRequestChecker(this._algoCollection);
+    this.postRequestChecker.setup();
 
     this.addAlgo = AlgoController.prototype.addAlgo.bind(this);
 }
@@ -26,19 +30,24 @@ function AlgoController(algoCollection, statusHelper) {
  */
 AlgoController.prototype.addAlgo = function(req, res) {
     let _this = this;
+
+    _this.postRequestChecker.checkRequest(req)
+        .then(function (success) {
+            console.log(success); // es-lint-disable no-console
+            _this._algoCollection.insert({'algoName': req.body.algoName}, function(err, item){
+                if(err != null){
+                    res.status(500);
+                    res.json('Unable to insert in DB');
+                }else{
+                    res.status(200);
+                    res.json({ ok: true, item: item });
+                }
+            });
+        }, function (error) {
+            res.status(400);
+            res.json(ErrorHelper('Bad request', error));
+        });
+
 };
 
-/**
- * @fn checkReq
- * @desc Check if request is a valid request. This will check if algorithm string is valid.
- * algorithm name must consist only of lower case alphabets, hyphens and numerals. If update is false, then algorithm name
- * must be unique, else it must already be present in the collection. description must be free text. className must be
- * present in algorithm string, such that it is defined as a class and must consist of
- * alphabets, underscores and numerals only.
- * @param req
- * @param update
- * @return true if request is valid, false otherwise.
- */
-AlgoController.prototype.checkReq = function (req, update) {
-    let update = update ? update : false;
-}
+module.exports = AlgoController;
