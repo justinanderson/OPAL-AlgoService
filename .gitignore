@@ -68,5 +68,5 @@ typings/
 *.iml
 
 # Config Files
-config/opal.algobank.config.js
+config/opal.algoservice.config.js
 package-lock.json

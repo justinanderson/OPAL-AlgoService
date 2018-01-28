@@ -1,6 +1,6 @@
 const request = require('request');
 const eaeutils = require('eae-utils');
-let config = require('../config/opal.algobank.config');
+let config = require('../config/opal.algoservice.config.js');
 let TestServer = require('./testserver.js');
 
 let ts = new TestServer();
