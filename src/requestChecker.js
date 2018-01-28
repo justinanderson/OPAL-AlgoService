@@ -45,17 +45,21 @@ RequestChecker.prototype.checkRequest = function (req) {
     let _this = this;
 
     return new Promise(function(resolve, reject){
+        let checkPromises = [];
         for (const entry of _this.fieldCheckersArray.entries()){
             let fieldName, fieldChecker;
             fieldName = entry[0];
             fieldChecker = entry[1];
-            fieldChecker.check(req, _this._reqType)
-                .then(function(success){
-                    resolve(success);
-                }, function(error){
-                    reject(ErrorHelper('Check for field ' + fieldName + ' failed', error));
-                });
+            checkPromises.push(fieldChecker.check(req, _this._reqType))
+
         }
+        Promise.all(checkPromises)
+            .then(function(success){
+                resolve(true);
+            })
+            .catch(function(error){
+                reject(ErrorHelper('Field check failed', error));
+            });
     });
 };
 

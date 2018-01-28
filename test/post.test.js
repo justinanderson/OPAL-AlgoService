@@ -7,8 +7,10 @@ let TestServer = require('./testserver.js');
 let ts = new TestServer();
 
 function getPostData(data) {
+    data = data ? data : {};
     return {
-        algoName: data.algoName ? data.algoName : 'pop-density'
+        algoName: data.hasOwnProperty('algoName') ? data.algoName : 'pop-density',
+        description: data.hasOwnProperty('description') ? data.description : 'Population density'
     };
 }
 
@@ -78,42 +80,25 @@ test('AlgoName with special characters except hyphens', function(done) {
     });
 });
 
-test('AlgoName satisfying all the constraints', function(done) {
-    request({
-        method: 'POST',
-        baseUrl: 'http://127.0.0.1:' + config.port,
-        uri: '/add',
-        body: getPostData({algoName: 'pop-density'}),
-        json: true
-    }, function(error, response, body) {
-        if (error) {
-            done.fail(error.toString());
-        }
-        expect(response).toBeDefined();
-        expect(response.statusCode).toEqual(200);
-        done();
-    });
-});
-
 test('Already inserted algoName.', function(done) {
-    let algoName = 'pop-density';
     request({
         method: 'POST',
         baseUrl: 'http://127.0.0.1:' + config.port,
         uri: '/add',
-        body: getPostData({algoName: algoName}),
+        body: getPostData(),
         json: true
     }, function(error, response, body) {
         if (error) {
             done.fail(error.toString());
         }
         expect(response).toBeDefined();
+        // console.log(response.body);
         expect(response.statusCode).toEqual(200);
         request({
             method: 'POST',
             baseUrl: 'http://127.0.0.1:' + config.port,
             uri: '/add',
-            body: getPostData({algoName: algoName}),
+            body: getPostData(),
             json: true
         }, function(error, response, body) {
             if (error) {
@@ -123,6 +108,74 @@ test('Already inserted algoName.', function(done) {
             expect(response.statusCode).toEqual(400);
             done();
         });
+    });
+});
+
+test('Undefined description', function(done) {
+    request({
+        method: 'POST',
+        baseUrl: 'http://127.0.0.1:' + config.port,
+        uri: '/add',
+        body: getPostData({description: undefined}),
+        json: true
+    }, function(error, response, body) {
+        if (error) {
+            done.fail(error.toString());
+        }
+        expect(response).toBeDefined();
+        expect(response.statusCode).toEqual(400);
+        done();
+    });
+});
+
+test('Numerical description', function(done) {
+    request({
+        method: 'POST',
+        baseUrl: 'http://127.0.0.1:' + config.port,
+        uri: '/add',
+        body: getPostData({description: undefined}),
+        json: true
+    }, function(error, response, body) {
+        if (error) {
+            done.fail(error.toString());
+        }
+        expect(response).toBeDefined();
+        expect(response.statusCode).toEqual(400);
+        done();
+    });
+});
+
+test('Empty description', function(done) {
+    request({
+        method: 'POST',
+        baseUrl: 'http://127.0.0.1:' + config.port,
+        uri: '/add',
+        body: getPostData({description: ''}),
+        json: true
+    }, function(error, response, body) {
+        if (error) {
+            done.fail(error.toString());
+        }
+        expect(response).toBeDefined();
+        expect(response.statusCode).toEqual(400);
+        done();
+    });
+});
+
+test('Correct description and algoName', function(done) {
+    request({
+        method: 'POST',
+        baseUrl: 'http://127.0.0.1:' + config.port,
+        uri: '/add',
+        body: getPostData(),
+        json: true
+    }, function(error, response, body) {
+        if (error) {
+            done.fail(error.toString());
+        }
+        expect(response).toBeDefined();
+        expect(response.statusCode).toEqual(200);
+        done();
     });
 });
 

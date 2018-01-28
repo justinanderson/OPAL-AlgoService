@@ -33,14 +33,18 @@ AlgoController.prototype.addAlgo = function(req, res) {
 
     _this.postRequestChecker.checkRequest(req)
         .then(function () {
-            _this._algoCollection.insert({'algoName': req.body.algoName}, function(err, item){
-                if(err != null){
-                    res.status(500);
-                    res.json('Unable to insert in DB');
-                }else{
-                    res.status(200);
-                    res.json({ ok: true, item: item });
-                }
+            _this._algoCollection.insert({
+                    'algoName': req.body.algoName,
+                    'version': 1,
+                    'description': req.body.description
+                }, function(err, item){
+                    if(err != null){
+                        res.status(500);
+                        res.json('Unable to insert in DB');
+                    }else{
+                        res.status(200);
+                        res.json({ ok: true, item: item });
+                    }
             });
         }, function (error) {
             res.status(400);
