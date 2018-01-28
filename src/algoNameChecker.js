@@ -45,7 +45,6 @@ AlgoNameChecker.prototype._checkPOST = function (req) {
             reject(ErrorHelper('algoName must contain only lower case alphabets, numerals and hyphens.'));
         }
     });
-
 };
 
 module.exports = AlgoNameChecker;

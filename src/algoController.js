@@ -32,8 +32,7 @@ AlgoController.prototype.addAlgo = function(req, res) {
     let _this = this;
 
     _this.postRequestChecker.checkRequest(req)
-        .then(function (success) {
-            console.log(success); // es-lint-disable no-console
+        .then(function () {
             _this._algoCollection.insert({'algoName': req.body.algoName}, function(err, item){
                 if(err != null){
                     res.status(500);
