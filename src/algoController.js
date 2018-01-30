@@ -43,25 +43,15 @@ AlgoController.prototype.addAlgo = function(req, res) {
             let code = _this.postRequestChecker.fieldCheckersArray.get('algorithm').convBase64ToUTF8(req.body.algorithm.code);
             let algoName = req.body.algoName;
             let version = 1;
-            _this._saveAlgo(algoName, 1, code, false)
+            _this._saveAlgo(algoName, version, code, false)
                 .then(function (fpath) {
-                    _this._algoCollection.insert(
-                        {
-                            'algoName': algoName,
-                            'version': version,
-                            'description': req.body.description,
-                            'algorithm': {
-                                'code': fpath,
-                                'className': req.body.algorithm.className
-                            }
-                        }, function(err, item){
-                            if(err != null){
-                                res.status(500);
-                                res.json('Unable to insert in DB');
-                            }else{
-                                res.status(200);
-                                res.json({ ok: true, item: item });
-                            }
+                    _this._insertDB(algoName, version, req.body.description, fpath, req.body.algorithm.className)
+                        .then(function (item) {
+                            res.status(200);
+                            res.json({ok: true, item: item});
+                        }, function (error) {
+                            res.status(500);
+                            res.json(error);
                         });
                 }, function (error) {
                     res.status(500);
@@ -74,6 +64,12 @@ AlgoController.prototype.addAlgo = function(req, res) {
 
 };
 
+/**
+ * @fn updateAlgo
+ * @desc Update algorithm given algoName, description and algorithm. algoName must already exist in the DB. This updates the algorithm.
+ * @param req Express.js request object
+ * @param res Express.js response object
+ */
 AlgoController.prototype.updateAlgo = function(req, res) {
     let _this = this;
 
@@ -88,25 +84,15 @@ AlgoController.prototype.updateAlgo = function(req, res) {
                    res.json(ErrorHelper('Unable to read from DB', err));
                 } else {
                     version = result[0].version + 1;
-                    _this._saveAlgo(algoName, 1, code, true)
+                    _this._saveAlgo(algoName, version, code, true)
                         .then(function (fpath) {
-                            _this._algoCollection.insert(
-                                {
-                                    'algoName': algoName,
-                                    'version': version,
-                                    'description': req.body.description,
-                                    'algorithm': {
-                                        'code': fpath,
-                                        'className': req.body.algorithm.className
-                                    }
-                                }, function(err, item){
-                                    if(err != null){
-                                        res.status(500);
-                                        res.json(ErrorHelper('Unable to insert in DB', err));
-                                    }else{
-                                        res.status(200);
-                                        res.json({ ok: true, item: item });
-                                    }
+                            _this._insertDB(algoName, version, req.body.description, fpath, req.body.algorithm.className)
+                                .then(function (item) {
+                                    res.status(200);
+                                    res.json({ok: true, item: item});
+                                }, function (error) {
+                                    res.status(500);
+                                    res.json(error);
                                 });
                         }, function (error) {
                             res.status(500);
@@ -121,6 +107,16 @@ AlgoController.prototype.updateAlgo = function(req, res) {
 
 };
 
+/**
+ * @fn _saveAlgo
+ * @desc Save the algorithm code in the python file. The file is saved as /folder/{algoName}/v{version}.py
+ * @param algoName {string} Name of the algorithm
+ * @param version {int} Version of the code
+ * @param code {string} Python code to be saved
+ * @param update {boolean} Is it the update call or add call. Add call will as well create folders.
+ * @return {Promise<any>}
+ * @private
+ */
 AlgoController.prototype._saveAlgo = function(algoName, version, code, update) {
     return new Promise(function (resolve, reject) {
         let saveFolder = path.join(global.opal_algoservice_config.savePath, algoName);
@@ -133,6 +129,38 @@ AlgoController.prototype._saveAlgo = function(algoName, version, code, update) {
                 reject(ErrorHelper('Error in saving file', err));
             } else {
                 resolve(saveFile);
+            }
+        });
+    });
+};
+
+/**
+ * @fn _insertDB
+ * @desc Insert algorithm object in MongoDB
+ * @param algoName {string} Name of the algorithm
+ * @param version {int} Version of the code
+ * @param description {string} Description of the algorithm
+ * @param fpath {string} Path to the saved code file
+ * @param className {string} Name of the class.
+ * @return {Promise<any>} resolves with inserted item, rejects with an error
+ * @private
+ */
+AlgoController.prototype._insertDB = function (algoName, version, description, fpath, className) {
+    let _this = this;
+    return new Promise(function (resolve, reject) {
+        _this._algoCollection.insert({
+            'algoName': algoName,
+            'version': version,
+            'description': description,
+            'algorithm': {
+                'code': fpath,
+                'className': className
+            }
+        }, function (err, item) {
+            if (err != null) {
+                reject(ErrorHelper('Unable to insert in DB', err));
+            } else {
+                resolve(item);
             }
         });
     });
