@@ -1,6 +1,8 @@
 // Controls interaction with algorithm bank
 const { ErrorHelper } =  require('eae-utils');
 const PostRequestChecker = require('./postRequestChecker.js');
+const path = require('path');
+const fs = require('fs');
 
 /**
  * @class AlgoController
@@ -33,24 +35,55 @@ AlgoController.prototype.addAlgo = function(req, res) {
 
     _this.postRequestChecker.checkRequest(req)
         .then(function () {
-            _this._algoCollection.insert({
-                    'algoName': req.body.algoName,
-                    'version': 1,
-                    'description': req.body.description
-                }, function(err, item){
-                    if(err != null){
-                        res.status(500);
-                        res.json('Unable to insert in DB');
-                    }else{
-                        res.status(200);
-                        res.json({ ok: true, item: item });
-                    }
-            });
+            let code = _this.postRequestChecker.fieldCheckersArray.get('algorithm').convBase64ToUTF8(req.body.algorithm.code);
+            let algoName = req.body.algoName;
+            let version = 1;
+            _this._saveAlgo(algoName, 1, code, false)
+                .then(function (fpath) {
+                    _this._algoCollection.insert(
+                        {
+                            'algoName': algoName,
+                            'version': version,
+                            'description': req.body.description,
+                            'algorithm': {
+                                'code': fpath,
+                                'className': req.body.algorithm.className
+                            }
+                        }, function(err, item){
+                            if(err != null){
+                                res.status(500);
+                                res.json('Unable to insert in DB');
+                            }else{
+                                res.status(200);
+                                res.json({ ok: true, item: item });
+                            }
+                        });
+                }, function (error) {
+                    res.status(500);
+                    res.json(ErrorHelper('Internal server error', error));
+                });
         }, function (error) {
             res.status(400);
             res.json(ErrorHelper('Bad request', error));
         });
 
+};
+
+AlgoController.prototype._saveAlgo = function(algoName, version, code, update) {
+    return new Promise(function (resolve, reject) {
+        let saveFolder = path.join(global.opal_algoservice_config.savePath, algoName);
+        if (!update && !fs.existsSync(saveFolder)) {
+            fs.mkdirSync(saveFolder);
+        }
+        let saveFile = path.join(saveFolder, 'v' + version.toString() + '.py');
+        fs.writeFile(saveFile, code, 'utf8', function (err) {
+            if (err) {
+                reject(ErrorHelper('Error in saving file', err));
+            } else {
+                resolve(saveFile);
+            }
+        });
+    });
 };
 
 module.exports = AlgoController;

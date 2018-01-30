@@ -4,5 +4,6 @@ module.exports = {
     port: 3001,
 	enableCors: true,
     serviceType: 'opal-algobank',
-    collectionName: 'algobank'
+    collectionName: 'algobank',
+    savePath: '/home/dora/projects/imperial/OPAL-AlgoBank/data/algorithms/'
 };
