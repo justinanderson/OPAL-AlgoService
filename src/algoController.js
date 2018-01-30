@@ -1,6 +1,7 @@
 // Controls interaction with algorithm bank
 const { ErrorHelper } =  require('eae-utils');
 const PostRequestChecker = require('./postRequestChecker.js');
+const UpdateRequestChecker = require('./updateRequestChecker.js');
 const path = require('path');
 const fs = require('fs');
 
@@ -18,7 +19,11 @@ function AlgoController(algoCollection, statusHelper) {
     this.postRequestChecker = new PostRequestChecker(this._algoCollection);
     this.postRequestChecker.setup();
 
+    this.updateRequestChecker = new UpdateRequestChecker(this._algoCollection);
+    this.updateRequestChecker.setup();
+
     this.addAlgo = AlgoController.prototype.addAlgo.bind(this);
+    this.updateAlgo = AlgoController.prototype.updateAlgo.bind(this);
 }
 
 /**
@@ -62,6 +67,53 @@ AlgoController.prototype.addAlgo = function(req, res) {
                     res.status(500);
                     res.json(ErrorHelper('Internal server error', error));
                 });
+        }, function (error) {
+            res.status(400);
+            res.json(ErrorHelper('Bad request', error));
+        });
+
+};
+
+AlgoController.prototype.updateAlgo = function(req, res) {
+    let _this = this;
+
+    _this.updateRequestChecker.checkRequest(req)
+        .then(function () {
+            let code = _this.updateRequestChecker.fieldCheckersArray.get('algorithm').convBase64ToUTF8(req.body.algorithm.code);
+            let algoName = req.body.algoName;
+            let version = 1;
+            _this._algoCollection.find({algoName: algoName}, {version: 1, _id: 0}).sort({version: -1}).limit(1).toArray(function (err, result) {
+                if (err) {
+                   res.status(500);
+                   res.json(ErrorHelper('Unable to read from DB', err));
+                } else {
+                    version = result[0].version + 1;
+                    _this._saveAlgo(algoName, 1, code, true)
+                        .then(function (fpath) {
+                            _this._algoCollection.insert(
+                                {
+                                    'algoName': algoName,
+                                    'version': version,
+                                    'description': req.body.description,
+                                    'algorithm': {
+                                        'code': fpath,
+                                        'className': req.body.algorithm.className
+                                    }
+                                }, function(err, item){
+                                    if(err != null){
+                                        res.status(500);
+                                        res.json(ErrorHelper('Unable to insert in DB', err));
+                                    }else{
+                                        res.status(200);
+                                        res.json({ ok: true, item: item });
+                                    }
+                                });
+                        }, function (error) {
+                            res.status(500);
+                            res.json(ErrorHelper('Internal server error', error));
+                        });
+                }
+            });
         }, function (error) {
             res.status(400);
             res.json(ErrorHelper('Bad request', error));
