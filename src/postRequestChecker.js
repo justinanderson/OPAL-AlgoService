@@ -2,6 +2,7 @@
 const RequestChecker = require('./requestChecker.js');
 const AlgoNameChecker = require('./algoNameChecker.js');
 const DescriptionChecker = require('./descriptionChecker.js');
+const AlgoChecker = require('./algoChecker.js');
 
 /**
  * @class PostRequestChecker
@@ -29,11 +30,15 @@ PostRequestChecker.prototype.setupFieldCheckers = function () {
     let fieldCheckerMap = new Map();
     let algoNameChecker = new AlgoNameChecker(_this._algoCollection);
     let descriptionChecker = new DescriptionChecker(_this._algoCollection);
+    let algoChecker = new AlgoChecker(_this._algoCollection);
+
     algoNameChecker.setup();
     descriptionChecker.setup();
+    algoChecker.setup();
 
     fieldCheckerMap.set('algoName', algoNameChecker);
     fieldCheckerMap.set('description', descriptionChecker);
+    fieldCheckerMap.set('algorithm', algoChecker);
     return fieldCheckerMap;
 };
 
