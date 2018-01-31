@@ -1,8 +1,10 @@
 // Test POST requests.
 const request = require('request');
-let TestServer = require('./testserver.js');
-const fs = require('fs');
+const TestServer = require('./testserver.js');
 const TestUtils = require('./test_utils.js');
+const fs = require('fs');
+
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000; // 20 seconds
 
 let ts = new TestServer();
 let testUtils = new TestUtils(ts);
@@ -22,7 +24,7 @@ beforeAll(function() {
  * @desc Before each test, sanitize the DB collection.
  */
 beforeEach(function () {
-    return testUtils.createFreshDb();
+    return testUtils.emptyCollection();
 });
 
 test('AlgoName with capital characters', function(done) {
@@ -71,7 +73,6 @@ test('Already inserted algoName.', function(done) {
             done.fail(error.toString());
         }
         expect(response).toBeDefined();
-        // console.log(response.body);
         expect(response.statusCode).toEqual(200);
         request({
             method: 'POST',

@@ -1,10 +1,10 @@
 // Test for update request.
 const request = require('request');
-const eaeutils = require('eae-utils');
-let config = require('../config/opal.algoservice.config.js');
-let TestServer = require('./testserver.js');
-const fs = require('fs');
+const TestServer = require('./testserver.js');
 const TestUtils = require('./test_utils.js');
+const fs = require('fs');
+
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000; // 20 seconds
 
 let ts = new TestServer();
 let testUtils = new TestUtils(ts);
@@ -24,7 +24,7 @@ beforeAll(function() {
  * @desc Before each test, sanitize the DB collection.
  */
 beforeEach(function () {
-    return testUtils.createFreshDb();
+    return testUtils.emptyCollection();
 });
 
 test('Update without adding should not work', function (done) {

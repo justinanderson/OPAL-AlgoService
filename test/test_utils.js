@@ -13,7 +13,7 @@ function TestUtils(testServer) {
     this.ts = testServer;
     this.getPostData = TestUtils.prototype.getPostData.bind(this);
     this.getFileBase64 = TestUtils.prototype.getFileBase64.bind(this);
-    this.createFreshDb = TestUtils.prototype.createFreshDb.bind(this);
+    this.emptyCollection = TestUtils.prototype.emptyCollection.bind(this);
 }
 
 /**
@@ -49,24 +49,25 @@ TestUtils.prototype.getFileBase64 = function (filepath) {
 
 /**
  * @fn createFreshDb
- * @desc Remove old collection and create a new empty collection.
+ * @desc Empties collection.
  * @return {Promise<any>}
  */
-TestUtils.prototype.createFreshDb = function () {
+TestUtils.prototype.emptyCollection = function () {
     let _this = this;
     return new Promise(function (resolve, reject) {
-        _this.ts.mongo().collection(_this.ts.config.collectionName).drop(function(err) {
-            if(err){
-                reject(eaeutils.ErrorHelper('Deletion of collection unsuccessful', err));
-            } else {
-                _this.ts.mongo().createCollection(_this.ts.config.collectionName)
-                    .then(function (res) {
-                        resolve(res);
-                    },function(err) {
-                        reject(eaeutils.ErrorHelper('Creation of collection unsuccessful', err));
-                    });
-            }
-        });
+        _this.ts.mongo().listCollections({name: _this.ts.config.collectionName}).toArray().then(
+            function(items) {
+                if (items.length > 0) {
+                    _this.ts.mongo().collection(_this.ts.config.collectionName).deleteMany({}).then(
+                        function (success) {
+                            resolve(success);
+                        }, function (error) {
+                            reject(error);
+                        });
+                }
+            }, function (error) {
+                reject(error);
+            });
     });
 };
 
