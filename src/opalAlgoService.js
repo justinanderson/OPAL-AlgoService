@@ -126,6 +126,7 @@ OpalAlgoService.prototype._setupAlgoController = function() {
     _this.algoController = new AlgoController(_this.db.collection(global.opal_algoservice_config.collectionName), _this.status_helper);
     _this.app.post('/add', _this.algoController.addAlgo); // POST new algorithm
     _this.app.post('/update', _this.algoController.updateAlgo); // UPDATE algorithm
+    _this.app.get('/list', _this.algoController.listAlgo); // List all algorithms
 };
 
 module.exports = OpalAlgoService;

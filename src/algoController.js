@@ -2,6 +2,7 @@
 const { ErrorHelper } =  require('eae-utils');
 const PostRequestChecker = require('./postRequestChecker.js');
 const UpdateRequestChecker = require('./updateRequestChecker.js');
+const ListRequestChecker = require('./listRequestChecker.js');
 const path = require('path');
 const fs = require('fs');
 
@@ -22,8 +23,12 @@ function AlgoController(algoCollection, statusHelper) {
     this.updateRequestChecker = new UpdateRequestChecker(this._algoCollection);
     this.updateRequestChecker.setup();
 
+    this.listRequestChecker = new ListRequestChecker(this._algoCollection);
+    this.listRequestChecker.setup();
+
     this.addAlgo = AlgoController.prototype.addAlgo.bind(this);
     this.updateAlgo = AlgoController.prototype.updateAlgo.bind(this);
+    this.listAlgo = AlgoController.prototype.listAlgo.bind(this);
 }
 
 /**
@@ -164,6 +169,38 @@ AlgoController.prototype._insertDB = function (algoName, version, description, f
             }
         });
     });
+};
+
+/**
+ * @fn listAlgo
+ * @desc List algorithms available with their latest versions.
+ * @param req Express.js request object
+ * @param res Express.js response object
+ */
+AlgoController.prototype.listAlgo = function(req, res) {
+    let _this = this;
+    _this.listRequestChecker.checkRequest(req).then(
+        function () {
+            _this._algoCollection.aggregate([
+                {$match: {}},
+                {$group: {
+                    _id: '$algoName', version: {$max: '$version'}}
+                }
+            ]).toArray().then(
+                function (success) {
+                    res.status(200);
+                    res.json({
+                        ok: true, item: success
+                    });
+                }, function (error) {
+                    res.status(500);
+                    res.json(error);
+                }
+            );
+        }, function (error) {
+            res.status(400);
+            res.json(error);
+        });
 };
 
 module.exports = AlgoController;
