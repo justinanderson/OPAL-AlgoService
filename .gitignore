@@ -70,3 +70,6 @@ typings/
 # Config Files
 config/opal.algoservice.config.js
 package-lock.json
+
+# data paths
+data

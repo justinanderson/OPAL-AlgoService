@@ -8,6 +8,7 @@ const path = require('path');
 function TestServer() {
     // Bind member vars
     this._app = express();
+    this.config = config;
 
     // Bind member functions
     this.run = TestServer.prototype.run.bind(this);

@@ -1,18 +1,13 @@
 // Test POST requests.
 const request = require('request');
-const eaeutils = require('eae-utils');
-let config = require('../config/opal.algoservice.config.js');
-let TestServer = require('./testserver.js');
+const TestServer = require('./testserver.js');
+const TestUtils = require('./test_utils.js');
+const fs = require('fs');
+
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000; // 20 seconds
 
 let ts = new TestServer();
-
-function getPostData(data) {
-    data = data ? data : {};
-    return {
-        algoName: data.hasOwnProperty('algoName') ? data.algoName : 'pop-density',
-        description: data.hasOwnProperty('description') ? data.description : 'Population density'
-    };
-}
+let testUtils = new TestUtils(ts);
 
 beforeAll(function() {
     return new Promise(function (resolve, reject) {
@@ -29,29 +24,15 @@ beforeAll(function() {
  * @desc Before each test, sanitize the DB collection.
  */
 beforeEach(function () {
-    return new Promise(function (resolve, reject) {
-        ts.mongo().collection(config.collectionName).drop(function(err, reply) {
-            if(err){
-                reject(eaeutils.ErrorHelper('Deletion of collection unsuccessful', err));
-            } else {
-                ts.mongo().createCollection(config.collectionName, function (err, res) {
-                    if(err){
-                        reject(eaeutils.ErrorHelper('Creation of collection unsuccessful', err));
-                    } else {
-                        resolve(true);
-                    }
-                });
-            }
-        });
-    });
+    return testUtils.emptyCollection();
 });
 
 test('AlgoName with capital characters', function(done) {
     request({
         method: 'POST',
-        baseUrl: 'http://127.0.0.1:' + config.port,
+        baseUrl: 'http://127.0.0.1:' + ts.config.port,
         uri: '/add',
-        body: getPostData({algoName: 'pop-Density'}),
+        body: testUtils.getPostData({algoName: 'pop-Density'}),
         json: true
         }, function(error, response, body) {
             if (error) {
@@ -66,9 +47,9 @@ test('AlgoName with capital characters', function(done) {
 test('AlgoName with special characters except hyphens', function(done) {
     request({
         method: 'POST',
-        baseUrl: 'http://127.0.0.1:' + config.port,
+        baseUrl: 'http://127.0.0.1:' + ts.config.port,
         uri: '/add',
-        body: getPostData({algoName: 'pop_density'}),
+        body: testUtils.getPostData({algoName: 'pop_density'}),
         json: true
     }, function(error, response, body) {
         if (error) {
@@ -83,22 +64,21 @@ test('AlgoName with special characters except hyphens', function(done) {
 test('Already inserted algoName.', function(done) {
     request({
         method: 'POST',
-        baseUrl: 'http://127.0.0.1:' + config.port,
+        baseUrl: 'http://127.0.0.1:' + ts.config.port,
         uri: '/add',
-        body: getPostData(),
+        body: testUtils.getPostData(),
         json: true
     }, function(error, response, body) {
         if (error) {
             done.fail(error.toString());
         }
         expect(response).toBeDefined();
-        // console.log(response.body);
         expect(response.statusCode).toEqual(200);
         request({
             method: 'POST',
-            baseUrl: 'http://127.0.0.1:' + config.port,
+            baseUrl: 'http://127.0.0.1:' + ts.config.port,
             uri: '/add',
-            body: getPostData(),
+            body: testUtils.getPostData(),
             json: true
         }, function(error, response, body) {
             if (error) {
@@ -114,9 +94,9 @@ test('Already inserted algoName.', function(done) {
 test('Undefined description', function(done) {
     request({
         method: 'POST',
-        baseUrl: 'http://127.0.0.1:' + config.port,
+        baseUrl: 'http://127.0.0.1:' + ts.config.port,
         uri: '/add',
-        body: getPostData({description: undefined}),
+        body: testUtils.getPostData({description: undefined}),
         json: true
     }, function(error, response, body) {
         if (error) {
@@ -131,9 +111,9 @@ test('Undefined description', function(done) {
 test('Numerical description', function(done) {
     request({
         method: 'POST',
-        baseUrl: 'http://127.0.0.1:' + config.port,
+        baseUrl: 'http://127.0.0.1:' + ts.config.port,
         uri: '/add',
-        body: getPostData({description: undefined}),
+        body: testUtils.getPostData({description: undefined}),
         json: true
     }, function(error, response, body) {
         if (error) {
@@ -148,9 +128,9 @@ test('Numerical description', function(done) {
 test('Empty description', function(done) {
     request({
         method: 'POST',
-        baseUrl: 'http://127.0.0.1:' + config.port,
+        baseUrl: 'http://127.0.0.1:' + ts.config.port,
         uri: '/add',
-        body: getPostData({description: ''}),
+        body: testUtils.getPostData({description: ''}),
         json: true
     }, function(error, response, body) {
         if (error) {
@@ -162,17 +142,69 @@ test('Empty description', function(done) {
     });
 });
 
-test('Correct description and algoName', function(done) {
+test('Code with multiprocessing library', function (done) {
     request({
         method: 'POST',
-        baseUrl: 'http://127.0.0.1:' + config.port,
+        baseUrl: 'http://127.0.0.1:' + ts.config.port,
         uri: '/add',
-        body: getPostData(),
+        body: testUtils.getPostData({filename: 'test/algorithms/popDensityMulti.py'}),
         json: true
     }, function(error, response, body) {
         if (error) {
             done.fail(error.toString());
         }
+        expect(response).toBeDefined();
+        expect(response.statusCode).toEqual(400);
+        done();
+    });
+});
+
+test('Code not using opalalgorithms library', function (done) {
+    request({
+        method: 'POST',
+        baseUrl: 'http://127.0.0.1:' + ts.config.port,
+        uri: '/add',
+        body: testUtils.getPostData({filename: 'test/algorithms/popDensityOpal.py'}),
+        json: true
+    }, function(error, response, body) {
+        if (error) {
+            done.fail(error.toString());
+        }
+        expect(response).toBeDefined();
+        expect(response.statusCode).toEqual(400);
+        done();
+    });
+});
+
+test('Code with wrong class name', function (done) {
+    request({
+        method: 'POST',
+        baseUrl: 'http://127.0.0.1:' + ts.config.port,
+        uri: '/add',
+        body: testUtils.getPostData({className: 'populationDensity'}),
+        json: true
+    }, function(error, response, body) {
+        if (error) {
+            done.fail(error.toString());
+        }
+        expect(response).toBeDefined();
+        expect(response.statusCode).toEqual(400);
+        done();
+    });
+});
+
+test('Correct description, algoName and algorithm', function(done) {
+    request({
+        method: 'POST',
+        baseUrl: 'http://127.0.0.1:' + ts.config.port,
+        uri: '/add',
+        body: testUtils.getPostData(),
+        json: true
+    }, function(error, response, body) {
+        if (error) {
+            done.fail(error.toString());
+        }
+        expect(fs.existsSync(body.item.ops[0].algorithm.code)).toBeTruthy();
         expect(response).toBeDefined();
         expect(response.statusCode).toEqual(200);
         done();

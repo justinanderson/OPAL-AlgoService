@@ -4,5 +4,6 @@ module.exports = {
     port: 8080,
 	enableCors: true,
     serviceType: 'opal-algobank',
-    collectionName: 'algobank'
+    collectionName: 'algobank',
+    savePath: '/absolute/path/to/save/algorithms/'
 };

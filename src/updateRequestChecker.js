@@ -5,26 +5,26 @@ const DescriptionChecker = require('./descriptionChecker.js');
 const AlgoChecker = require('./algoChecker.js');
 
 /**
- * @class PostRequestChecker
- * @desc Check whether post request is correct or not.
+ * @class UpdateRequestChecker
+ * @desc Check whether update request is correct or not.
  * @param algoCollection MongoDb collection
  * @constructor
  */
-function PostRequestChecker(algoCollection) {
-    RequestChecker.call(this, 'post', algoCollection);
+function UpdateRequestChecker(algoCollection) {
+    RequestChecker.call(this, 'update', algoCollection);
 
-    this.setupFieldCheckers = PostRequestChecker.prototype.setupFieldCheckers.bind(this);
+    this.setupFieldCheckers = UpdateRequestChecker.prototype.setupFieldCheckers.bind(this);
 }
 
-PostRequestChecker.prototype = Object.create(PostRequestChecker.prototype); // Inheritance
-PostRequestChecker.prototype.constructor = PostRequestChecker;
+UpdateRequestChecker.prototype = Object.create(UpdateRequestChecker.prototype); // Inheritance
+UpdateRequestChecker.prototype.constructor = UpdateRequestChecker;
 
 /**
  * @fn setupFieldCheckers
  * @desc Sets up the field checkers for each field.
  * @return {Map<any, any>}
  */
-PostRequestChecker.prototype.setupFieldCheckers = function () {
+UpdateRequestChecker.prototype.setupFieldCheckers = function () {
     let _this = this;
 
     let fieldCheckerMap = new Map();
@@ -42,4 +42,4 @@ PostRequestChecker.prototype.setupFieldCheckers = function () {
     return fieldCheckerMap;
 };
 
-module.exports = PostRequestChecker;
+module.exports = UpdateRequestChecker;
