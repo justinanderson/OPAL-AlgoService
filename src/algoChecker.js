@@ -22,6 +22,8 @@ function AlgoChecker(algoCollection) {
 
     this._classNameRegex = new RegExp('^[A-Za-z0-9_]+$');
 
+    this._reducerMethods = ['count', 'matrix']; // TODO: Modify this using constants from opal-utils
+
     this._checkAll = AlgoChecker.prototype._checkAll.bind(this);
     this._removeComments = AlgoChecker.prototype._removeComments.bind(this);
     this._removeSingleLineComments = AlgoChecker.prototype._removeSingleLineComments.bind(this);
@@ -29,8 +31,9 @@ function AlgoChecker(algoCollection) {
     this._checkLibraries = AlgoChecker.prototype._checkLibraries.bind(this);
     this._checkRestrictedLibrary = AlgoChecker.prototype._checkRestrictedLibrary.bind(this);
     this._checkMustHaveLibrary = AlgoChecker.prototype._checkMustHaveLibrary.bind(this);
+    this._checkReducer = AlgoChecker.prototype._checkReducer.bind(this);
 
-    this.convBase64ToUTF8 = AlgoChecker.prototype.convBase64ToUTF8.bind(this);
+    this.convBase64ToUTF8 = AlgoChecker.prototype.convBase64ToUTF8.bind(this); // TODO: Replace this with functions from opal-utils
 }
 
 AlgoChecker.prototype = Object.create(FieldChecker.prototype); // Inheritance
@@ -48,16 +51,15 @@ AlgoChecker.prototype._checkAll = function (req) {
     return new Promise(function (resolve, reject) {
         let algorithm = req.body ? req.body.algorithm : undefined;
         if (algorithm) {
-            _this._checkClassName(algorithm)
-                .then(function (algoClassName) {
-                    _this._checkCode(algorithm, algoClassName)
-                        .then(function (success) {
-                            resolve(success);
-                        }, function (error) {
-                            reject(ErrorHelper('Error in algorithm code', error));
-                        });
+            let promiseList = [];
+            promiseList.push(_this._checkClassName(algorithm));
+            promiseList.push(_this._checkCode(algorithm));
+            promiseList.push(_this._checkReducer(algorithm));
+            Promise.all(promiseList)
+                .then(function (success) {
+                    resolve(success);
                 }, function (error) {
-                    reject(ErrorHelper('Error in algorithm className', error));
+                    reject(ErrorHelper('Error in algorithm.', error));
                 });
         } else {
             reject(ErrorHelper('algorithm not available.'));
@@ -105,12 +107,12 @@ AlgoChecker.prototype.convBase64ToUTF8 = function (algoCode) {
  * @fn _checkCode
  * @desc Check if code is valid, it must not use restricted libraries and must use must have libraries. Class must exist which uses passed className argument.
  * @param algorithm {JSON} JSON algorithm object from the request
- * @param algoClassName {String} className that must be present in code
  * @return {Promise<any>} resolves with true, rejects with error.
  * @private
  */
-AlgoChecker.prototype._checkCode = function (algorithm, algoClassName) {
+AlgoChecker.prototype._checkCode = function (algorithm) {
     let _this = this;
+    let algoClassName = algorithm.className;
     return new Promise(function(resolve, reject) {
         let algoCode = algorithm ? algorithm.code : undefined;
         if (algoCode) {
@@ -253,6 +255,29 @@ AlgoChecker.prototype._removeSingleLineComments = function (code) {
  */
 AlgoChecker.prototype._removeMultiLineComments = function (code) {
     return code.replace(/(['"])\1\1(.*?)\1{3}/g, '');
+};
+
+/**
+ * @fn _checkReducer
+ * @desc Check if reducer mentioned is correct, must be amongst valid choices.
+ * @param algorithm {JSON}
+ * @return {Promise<any>} resolves with true, rejects with error.
+ * @private
+ */
+AlgoChecker.prototype._checkReducer = function (algorithm) {
+    let _this = this;
+    return new Promise(function (resolve, reject){
+        let reducer = algorithm ? algorithm.reducer : undefined;
+        if (reducer === undefined) {
+            reject(ErrorHelper('reducer not available'));
+        } else {
+            if (_this._reducerMethods.includes(reducer)) {
+                resolve(true);
+            } else {
+                reject(ErrorHelper('reducer must be from ' + _this._reducerMethods.toString()));
+            }
+        }
+    });
 };
 
 
