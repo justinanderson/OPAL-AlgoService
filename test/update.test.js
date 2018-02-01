@@ -29,7 +29,7 @@ beforeEach(function () {
 
 test('Update without adding should not work', function (done) {
     request({
-        method: 'POST',
+        method: 'PUT',
         baseUrl: 'http://127.0.0.1:' + ts.config.port,
         uri: '/update',
         body: testUtils.getPostData(),
@@ -61,7 +61,7 @@ test('Update after adding should work and have both files must have version name
         let v1 = body.item.ops[0].version;
         expect(fs.existsSync(v1path)).toBeTruthy();
         request({
-            method: 'POST',
+            method: 'PUT',
             baseUrl: 'http://127.0.0.1:' + ts.config.port,
             uri: '/update',
             body: testUtils.getPostData(),

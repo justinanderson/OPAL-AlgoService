@@ -4,6 +4,7 @@ const PostRequestChecker = require('./postRequestChecker.js');
 const UpdateRequestChecker = require('./updateRequestChecker.js');
 const ListRequestChecker = require('./listRequestChecker.js');
 const RetrieveRequestChecker = require('./retrieveRequestChecker.js');
+const DeleteRequestChecker = require('./deleteRequestChecker.js');
 const path = require('path');
 const fs = require('fs-extra');
 
@@ -30,14 +31,19 @@ function AlgoController(algoCollection, statusHelper) {
     this.retrieveRequestChecker = new RetrieveRequestChecker(this._algoCollection);
     this.retrieveRequestChecker.setup();
 
+    this.deleteRequestChecker = new DeleteRequestChecker(this._algoCollection);
+    this.deleteRequestChecker.setup();
+
     this.addAlgo = AlgoController.prototype.addAlgo.bind(this);
     this.updateAlgo = AlgoController.prototype.updateAlgo.bind(this);
     this.listAlgo = AlgoController.prototype.listAlgo.bind(this);
     this.retrieveAlgo = AlgoController.prototype.retrieveAlgo.bind(this);
+    this.removeAlgo = AlgoController.prototype.removeAlgo.bind(this);
 
     this._saveAlgo = AlgoController.prototype._saveAlgo.bind(this);
     this._insertDB = AlgoController.prototype._insertDB.bind(this);
     this._getAlgo = AlgoController.prototype._getAlgo.bind(this);
+    this._removeAlgo = AlgoController.prototype._removeAlgo.bind(this);
 }
 
 /**
@@ -277,6 +283,75 @@ AlgoController.prototype._getAlgo = function (algoName, version) {
                     resolve(success);
                 }, function (error) {
                     reject(ErrorHelper('Error in retrieval', error));
+                });
+        }
+    });
+};
+
+/**
+ * @fn removeAlgo
+ * @desc Remove algorithm from the database and delete python code, based on algoName and version passed.
+ * @param req Express.js request object
+ * @param res Express.js response object
+ */
+AlgoController.prototype.removeAlgo = function (req, res) {
+    let _this = this;
+    _this.deleteRequestChecker.checkRequest(req).then(
+        function () {
+            let algoName = req.params.algoName;
+            let version = req.params.version;
+            _this._removeAlgo(algoName, version).then(
+                function (success) {
+                    fs.unlink(success.algorithm.code).then(
+                        function () {
+                            res.status(200);
+                            res.json({
+                                ok: true, item: success
+                            });
+                        }, function (error) {
+                            res.status(500);
+                            res.json(ErrorHelper('Error in reading file ', error));
+                        });
+                }, function (error) {
+                    res.status(500);
+                    res.json(error);
+                }
+            );
+        }, function (error) {
+            res.status(404);
+            res.json(ErrorHelper('Invalid delete request.', error));
+        });
+};
+
+/**
+ * @fn _removeAlgo
+ * @desc Remove algorithm from the database based on algoName and version, if version is not defined deletes the code with highest version.
+ * @param algoName {string} Algorithm name
+ * @param version {string} Algorithm version
+ * @return {Promise<any>} resolves with deleted object, rejects with an error.
+ * @private
+ */
+AlgoController.prototype._removeAlgo = function (algoName, version) {
+    let _this = this;
+    return new Promise(function (resolve, reject) {
+        if (version) {
+            version = parseInt(version);
+            _this._algoCollection.findOneAndDelete({algoName: algoName, version: version}).then(
+                function (success) {
+                    if (success.ok == 1) {
+                        resolve(success.value);
+                    } else {
+                        reject(ErrorHelper('Algorithm not available'));
+                    }
+                }, function (error) {
+                    reject(ErrorHelper('Error in deletion', error));
+                });
+        } else {
+            _this._algoCollection.findOneAndDelete({algoName: algoName}, {sort: {version: -1}}).then(
+                function (success) {
+                    resolve(success.value);
+                }, function (error) {
+                    reject(ErrorHelper('Error in deletion', error));
                 });
         }
     });

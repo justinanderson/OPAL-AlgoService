@@ -15,6 +15,7 @@ function AlgoNameChecker(algoCollection) {
     this._checkPOST = AlgoNameChecker.prototype._checkPOST.bind(this);
     this._checkUPDATE = AlgoNameChecker.prototype._checkUPDATE.bind(this);
     this._checkGET = AlgoNameChecker.prototype._checkGET.bind(this);
+    this._checkDELETE = AlgoNameChecker.prototype._checkDELETE.bind(this);
 
     this._checkExist = AlgoNameChecker.prototype._checkExist.bind(this);
     this.regexp = new RegExp('^[a-z0-9-]+$');
@@ -102,6 +103,31 @@ AlgoNameChecker.prototype._checkExist = function(algoName) {
  * @private
  */
 AlgoNameChecker.prototype._checkGET = function (req) {
+    let _this = this;
+    return new Promise(function (resolve, reject){
+        let algoName = req.params ? req.params.algoName : undefined;
+        if (algoName === undefined) {
+            reject(ErrorHelper('algoName not available'));
+        } else {
+            _this._algoCollection.count({'algoName': algoName}, function (err, count) {
+                if (count == 0) {
+                    reject(ErrorHelper('algoName `' + algoName + '` does not exist in DB. Use /add to add the algorithm'));
+                } else {
+                    resolve(true);
+                }
+            });
+        }
+    });
+};
+
+/**
+ * @fn _checkDELETE
+ * @desc Field Check for delete request. Check already exists in DB.
+ * @param req Express.js request object.
+ * @return {Promise<any>} resolves with true on success, rejects with an error.
+ * @private
+ */
+AlgoNameChecker.prototype._checkDELETE = function (req) {
     let _this = this;
     return new Promise(function (resolve, reject){
         let algoName = req.params ? req.params.algoName : undefined;

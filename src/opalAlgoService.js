@@ -130,9 +130,10 @@ OpalAlgoService.prototype._setupAlgoController = function() {
     let _this = this;
     _this.algoController = new AlgoController(_this.db.collection(global.opal_algoservice_config.collectionName), _this.status_helper);
     _this.app.post('/add', _this.algoController.addAlgo); // POST new algorithm
-    _this.app.post('/update', _this.algoController.updateAlgo); // UPDATE algorithm
+    _this.app.put('/update', _this.algoController.updateAlgo); // UPDATE algorithm
     _this.app.get('/list', _this.algoController.listAlgo); // List all algorithms
     _this.app.get('/retrieve/:algoName([a-z0-9\-]+)/:version([0-9]+)?/', _this.algoController.retrieveAlgo); // Retrieve algo
+    _this.app.delete('/remove/:algoName([a-z0-9\-]+)/:version([0-9]+)?/', _this.algoController.removeAlgo); // Remove algo
 };
 
 module.exports = OpalAlgoService;

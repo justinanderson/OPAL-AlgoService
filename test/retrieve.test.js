@@ -55,7 +55,7 @@ test('Get should return algo with latest version number when not provided.', fun
         expect(response).toBeDefined();
         expect(response.statusCode).toEqual(200);
         request({
-            method: 'POST',
+            method: 'PUT',
             baseUrl: 'http://127.0.0.1:' + ts.config.port,
             uri: '/update',
             body: testUtils.getPostData(),
@@ -98,7 +98,7 @@ test('Get should return algo with version number provided.', function (done) {
         expect(response).toBeDefined();
         expect(response.statusCode).toEqual(200);
         request({
-            method: 'POST',
+            method: 'PUT',
             baseUrl: 'http://127.0.0.1:' + ts.config.port,
             uri: '/update',
             body: testUtils.getPostData(),
