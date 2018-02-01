@@ -1,4 +1,4 @@
-// Test for update request.
+// Test for list request.
 const request = require('request');
 const TestServer = require('./testserver.js');
 const TestUtils = require('./test_utils.js');
@@ -27,24 +27,24 @@ beforeEach(function () {
     return testUtils.emptyCollection();
 });
 
-test('Update without adding should not work', function (done) {
+test('List without adding should return empty array.', function (done) {
     request({
-        method: 'PUT',
+        method: 'GET',
         baseUrl: 'http://127.0.0.1:' + ts.config.port,
-        uri: '/update',
-        body: testUtils.getPostData(),
+        uri: '/list',
         json: true
     }, function(error, response, body) {
         if (error) {
             done.fail(error.toString());
         }
         expect(response).toBeDefined();
-        expect(response.statusCode).toEqual(400);
+        expect(response.statusCode).toEqual(200);
+        expect(body.item.length == 0);
         done();
     });
 });
 
-test('Update after adding should work and have both files must have version names separated by 1.', function (done) {
+test('List should return all the added algos with latest version number.', function (done) {
     request({
         method: 'POST',
         baseUrl: 'http://127.0.0.1:' + ts.config.port,
@@ -57,9 +57,6 @@ test('Update after adding should work and have both files must have version name
         }
         expect(response).toBeDefined();
         expect(response.statusCode).toEqual(200);
-        let v1path = body.item.ops[0].algorithm.code;
-        let v1 = body.item.ops[0].version;
-        expect(fs.existsSync(v1path)).toBeTruthy();
         request({
             method: 'PUT',
             baseUrl: 'http://127.0.0.1:' + ts.config.port,
@@ -72,12 +69,34 @@ test('Update after adding should work and have both files must have version name
             }
             expect(response).toBeDefined();
             expect(response.statusCode).toEqual(200);
-            let v2path = body.item.ops[0].algorithm.code;
-            let v2 = body.item.ops[0].version;
-            expect(v2-v1).toEqual(1);
-            expect(fs.existsSync(v2path)).toBeTruthy();
-            expect(v1path === v2path).toBeFalsy();
-            done();
+            request({
+                method: 'POST',
+                baseUrl: 'http://127.0.0.1:' + ts.config.port,
+                uri: '/add',
+                body: testUtils.getPostData({algoName: 'pop-den'}),
+                json: true
+            }, function(error, response, body) {
+                if (error) {
+                    done.fail(error.toString());
+                }
+                expect(response).toBeDefined();
+                expect(response.statusCode).toEqual(200);
+                request({
+                    method: 'GET',
+                    baseUrl: 'http://127.0.0.1:' + ts.config.port,
+                    uri: '/list',
+                    json: true
+                }, function(error, response, body) {
+                    if (error) {
+                        done.fail(error.toString());
+                    }
+                    expect(response).toBeDefined();
+                    expect(response.statusCode).toEqual(200);
+                    expect(body.item.length == 2);
+                    expect(body.item[0].version + body.item[1].version).toEqual(3);
+                    done();
+                });
+            });
         });
     });
 });
