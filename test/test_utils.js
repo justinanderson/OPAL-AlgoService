@@ -1,5 +1,5 @@
 // Utilities for testing
-const eaeutils = require('eae-utils');
+const opalutils = require('opal-utils');
 const fs = require('fs');
 
 
@@ -56,10 +56,10 @@ TestUtils.prototype.getFileBase64 = function (filepath) {
 TestUtils.prototype.emptyCollection = function () {
     let _this = this;
     return new Promise(function (resolve, reject) {
-        _this.ts.mongo().listCollections({name: _this.ts.config.collectionName}).toArray().then(
+        _this.ts.mongo().listCollections({name: opalutils.Constants_Opal.OPAL_ALGO_COLLECTION}).toArray().then(
             function(items) {
                 if (items.length > 0) {
-                    _this.ts.mongo().collection(_this.ts.config.collectionName).deleteMany({}).then(
+                    _this.ts.mongo().collection(opalutils.Constants_Opal.OPAL_ALGO_COLLECTION).deleteMany({}).then(
                         function (success) {
                             resolve(success);
                         }, function (error) {

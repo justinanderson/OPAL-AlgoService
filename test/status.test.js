@@ -1,5 +1,6 @@
 const request = require('request');
 const eaeutils = require('eae-utils');
+const opalutils = require('opal-utils');
 let config = require('../config/opal.algoservice.config.js');
 const TestServer = require('./testserver.js');
 
@@ -52,7 +53,7 @@ test('Service specs', function(done) {
             expect(response).toBeDefined();
             expect(response.statusCode).toEqual(200);
             expect(body).toBeDefined();
-            expect(body.type).toEqual(config.serviceType);
+            expect(body.type).toEqual(opalutils.Constants_Opal.OPAL_SERVICE_TYPE_ALGOSERVICE);
             done();
         });
 });

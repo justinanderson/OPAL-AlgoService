@@ -3,6 +3,7 @@ const mongodb = require('mongodb').MongoClient;
 const express = require('express');
 const body_parser = require('body-parser');
 const { ErrorHelper, StatusHelper, Constants } =  require('eae-utils');
+const { Constants_Opal } = require('opal-utils')
 
 const package_json = require('../package.json');
 const StatusController = require('./statusController.js');
@@ -112,8 +113,8 @@ OpalAlgoService.prototype._setupStatusController = function () {
     let statusOpts = {
         version: package_json.version
     };
-    _this.status_helper = new StatusHelper(
-        global.opal_algoservice_config.serviceType, global.opal_algoservice_config.port, null, statusOpts);
+    _this.status_helper = new StatusHelper(Constants_Opal.OPAL_SERVICE_TYPE_ALGOSERVICE,
+        global.opal_algoservice_config.port, null, statusOpts);
     _this.status_helper.setCollection(_this.db.collection(Constants.EAE_COLLECTION_STATUS));
 
     _this.statusController = new StatusController(_this.status_helper);
@@ -128,7 +129,7 @@ OpalAlgoService.prototype._setupStatusController = function () {
  */
 OpalAlgoService.prototype._setupAlgoController = function() {
     let _this = this;
-    _this.algoController = new AlgoController(_this.db.collection(global.opal_algoservice_config.collectionName), _this.status_helper);
+    _this.algoController = new AlgoController(_this.db.collection(Constants_Opal.OPAL_ALGO_COLLECTION), _this.status_helper);
     _this.app.post('/add', _this.algoController.addAlgo); // POST new algorithm
     _this.app.put('/update', _this.algoController.updateAlgo); // UPDATE algorithm
     _this.app.get('/list', _this.algoController.listAlgo); // List all algorithms
