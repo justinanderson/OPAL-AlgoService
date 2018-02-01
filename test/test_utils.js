@@ -31,7 +31,8 @@ TestUtils.prototype.getPostData = function (data) {
         description: data.hasOwnProperty('description') ? data.description : 'Population density',
         algorithm: {
             code: _this.getFileBase64(filename),
-            className: data.hasOwnProperty('className') ? data.description : 'PopulationDensity',
+            className: data.hasOwnProperty('className') ? data.className : 'PopulationDensity',
+            reducer: data.hasOwnProperty('reducer') ? data.reducer : 'count'
         }
     };
 };
