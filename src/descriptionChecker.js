@@ -19,7 +19,7 @@ DescriptionChecker.prototype = Object.create(FieldChecker.prototype); // Inherit
 DescriptionChecker.prototype.constructor = DescriptionChecker;
 
 /**
- * @fn _checkPOST
+ * @fn _checkAll
  * @desc Field check for all requests.
  * @param req Express.js request object.
  * @return {Promise}, returns true on success, else rejects with an error.

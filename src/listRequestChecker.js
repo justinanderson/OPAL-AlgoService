@@ -8,7 +8,7 @@ const RequestChecker = require('./requestChecker.js');
  * @constructor
  */
 function ListRequestChecker(algoCollection) {
-    RequestChecker.call(this, 'List', algoCollection);
+    RequestChecker.call(this, 'get', algoCollection);
 
     this.setupFieldCheckers = ListRequestChecker.prototype.setupFieldCheckers.bind(this);
 }

@@ -3,8 +3,9 @@ const { ErrorHelper } =  require('eae-utils');
 const PostRequestChecker = require('./postRequestChecker.js');
 const UpdateRequestChecker = require('./updateRequestChecker.js');
 const ListRequestChecker = require('./listRequestChecker.js');
+const RetrieveRequestChecker = require('./retrieveRequestChecker.js');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs-extra');
 
 /**
  * @class AlgoController
@@ -26,9 +27,17 @@ function AlgoController(algoCollection, statusHelper) {
     this.listRequestChecker = new ListRequestChecker(this._algoCollection);
     this.listRequestChecker.setup();
 
+    this.retrieveRequestChecker = new RetrieveRequestChecker(this._algoCollection);
+    this.retrieveRequestChecker.setup();
+
     this.addAlgo = AlgoController.prototype.addAlgo.bind(this);
     this.updateAlgo = AlgoController.prototype.updateAlgo.bind(this);
     this.listAlgo = AlgoController.prototype.listAlgo.bind(this);
+    this.retrieveAlgo = AlgoController.prototype.retrieveAlgo.bind(this);
+
+    this._saveAlgo = AlgoController.prototype._saveAlgo.bind(this);
+    this._insertDB = AlgoController.prototype._insertDB.bind(this);
+    this._getAlgo = AlgoController.prototype._getAlgo.bind(this);
 }
 
 /**
@@ -201,6 +210,76 @@ AlgoController.prototype.listAlgo = function(req, res) {
             res.status(400);
             res.json(error);
         });
+};
+
+/**
+ * @fn retrieveAlgo
+ * @desc Retrieve an algorithm object based on algoName and version if provided, else retrieve latest version
+ * @param req Express.js request object
+ * @param res Express.js response object
+ */
+AlgoController.prototype.retrieveAlgo = function (req, res) {
+    let _this = this;
+    _this.retrieveRequestChecker.checkRequest(req).then(
+        function () {
+            let algoName = req.params.algoName;
+            let version = req.params.version;
+            _this._getAlgo(algoName, version).then(
+                function (success) {
+                    fs.readFile(success.algorithm.code, 'utf8').then(
+                        function (data) {
+                            success.algorithm.code = data;
+                            res.status(200);
+                            res.json({
+                                ok: true, item: success
+                            });
+                        }, function (error) {
+                            res.status(500);
+                            res.json(ErrorHelper('Error in reading file ', error));
+                        });
+                }, function (error) {
+                    res.status(500);
+                    res.json(error);
+                }
+            );
+        }, function (error) {
+            res.status(404);
+            res.json(ErrorHelper('Invalid GET request.', error));
+        });
+};
+
+/**
+ * @fn _getAlgo
+ * @desc Return algorithm object based on algoName, version. If version is undefined then returns latest algorithm.
+ * @param algoName {string} algorithm name
+ * @param version {string} version number
+ * @return {Promise<any>} resolves
+ * @private
+ */
+AlgoController.prototype._getAlgo = function (algoName, version) {
+    let _this = this;
+    return new Promise(function (resolve, reject) {
+        if (version) {
+            version = parseInt(version);
+            _this._algoCollection.findOne({ algoName: algoName, version: version }).then(
+                function (success) {
+                    if (success) {
+                        resolve(success);
+                    } else {
+                        reject(ErrorHelper('Algorithm not available'));
+                    }
+                }, function (error) {
+                    reject(ErrorHelper('Error in retrieval', error));
+                });
+        } else {
+            _this._algoCollection.findOne({algoName: algoName}, {sort: {version: -1}}).then(
+                function (success) {
+                    resolve(success);
+                }, function (error) {
+                    reject(ErrorHelper('Error in retrieval', error));
+                });
+        }
+    });
 };
 
 module.exports = AlgoController;

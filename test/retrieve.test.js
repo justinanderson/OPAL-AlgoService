@@ -1,10 +1,8 @@
-// Test for list request.
+// Test for retrieve request.
 const request = require('request');
 const TestServer = require('./testserver.js');
 const TestUtils = require('./test_utils.js');
 const fs = require('fs');
-
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000; // 20 seconds
 
 let ts = new TestServer();
 let testUtils = new TestUtils(ts);
@@ -27,24 +25,23 @@ beforeEach(function () {
     return testUtils.emptyCollection();
 });
 
-test('List without adding should return empty array.', function (done) {
+test('Get without adding should return 404.', function (done) {
     request({
         method: 'GET',
         baseUrl: 'http://127.0.0.1:' + ts.config.port,
-        uri: '/list',
+        uri: '/retrieve/pop-den/',
         json: true
     }, function(error, response, body) {
         if (error) {
             done.fail(error.toString());
         }
         expect(response).toBeDefined();
-        expect(response.statusCode).toEqual(200);
-        expect(body.item.length == 0);
+        expect(response.statusCode).toEqual(404);
         done();
     });
 });
 
-test('List should return all the added algos with latest version number.', function (done) {
+test('Get should return algo with latest version number when not provided.', function (done) {
     request({
         method: 'POST',
         baseUrl: 'http://127.0.0.1:' + ts.config.port,
@@ -70,10 +67,9 @@ test('List should return all the added algos with latest version number.', funct
             expect(response).toBeDefined();
             expect(response.statusCode).toEqual(200);
             request({
-                method: 'POST',
+                method: 'GET',
                 baseUrl: 'http://127.0.0.1:' + ts.config.port,
-                uri: '/add',
-                body: testUtils.getPostData({algoName: 'pop-den'}),
+                uri: '/retrieve/' + testUtils.getPostData().algoName,
                 json: true
             }, function(error, response, body) {
                 if (error) {
@@ -81,21 +77,51 @@ test('List should return all the added algos with latest version number.', funct
                 }
                 expect(response).toBeDefined();
                 expect(response.statusCode).toEqual(200);
-                request({
-                    method: 'GET',
-                    baseUrl: 'http://127.0.0.1:' + ts.config.port,
-                    uri: '/list',
-                    json: true
-                }, function(error, response, body) {
-                    if (error) {
-                        done.fail(error.toString());
-                    }
-                    expect(response).toBeDefined();
-                    expect(response.statusCode).toEqual(200);
-                    expect(body.item.length == 2);
-                    expect(body.item[0].version + body.item[1].version).toEqual(3);
-                    done();
-                });
+                expect(body.item.version == 2);
+                done();
+            });
+        });
+    });
+});
+
+test('Get should return algo with version number provided.', function (done) {
+    request({
+        method: 'POST',
+        baseUrl: 'http://127.0.0.1:' + ts.config.port,
+        uri: '/add',
+        body: testUtils.getPostData(),
+        json: true
+    }, function(error, response, body) {
+        if (error) {
+            done.fail(error.toString());
+        }
+        expect(response).toBeDefined();
+        expect(response.statusCode).toEqual(200);
+        request({
+            method: 'POST',
+            baseUrl: 'http://127.0.0.1:' + ts.config.port,
+            uri: '/update',
+            body: testUtils.getPostData(),
+            json: true
+        }, function(error, response, body) {
+            if (error) {
+                done.fail(error.toString());
+            }
+            expect(response).toBeDefined();
+            expect(response.statusCode).toEqual(200);
+            request({
+                method: 'GET',
+                baseUrl: 'http://127.0.0.1:' + ts.config.port,
+                uri: '/retrieve/' + testUtils.getPostData().algoName + '/1',
+                json: true
+            }, function(error, response, body) {
+                if (error) {
+                    done.fail(error.toString());
+                }
+                expect(response).toBeDefined();
+                expect(response.statusCode).toEqual(200);
+                expect(body.item.version == 1);
+                done();
             });
         });
     });
