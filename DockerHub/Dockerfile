@@ -19,6 +19,9 @@ RUN cp package.json /usr/app/ \
 
 WORKDIR /usr/app
 
+# We create the folder for the savePath
+RUN mkdir data
+
 # Install eae-compute npm dependencies
 RUN npm install --silent; exit 0;
 RUN cat /root/.npm/_logs/*; exit 0;
