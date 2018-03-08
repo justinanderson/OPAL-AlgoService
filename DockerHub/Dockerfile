@@ -22,8 +22,8 @@ WORKDIR /usr/app
 # We create the folder for the savePath
 RUN mkdir data
 
-# Install eae-compute npm dependencies
-RUN npm install --silent; exit 0;
+# Install opal-algoservice npm dependencies
+RUN npm install; exit 0;
 RUN cat /root/.npm/_logs/*; exit 0;
 
 # Run compute service
