@@ -15,9 +15,8 @@ WORKDIR /root/OPAL-AlgoService
 
 # Bundle app
 RUN cp package.json /usr/app/ \
-   && cp -r src /usr/app/src
-
-COPY ./config/opal.algoservice.test.config.js /usr/app/config/opal.algoservice.config.js
+   && cp -r src /usr/app/src \
+   && cp config/opal.algoservice.test.config.js /usr/app/config/opal.algoservice.config.js
 
 WORKDIR /usr/app
 
