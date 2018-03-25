@@ -6,6 +6,7 @@ RUN apt-get update -q && apt-get upgrade -y --no-install-recommends
 
 # Create app directories
 RUN mkdir -p /usr/app/config
+WORKDIR /usr/app
 
 # Bundle app
 RUN cp package.json /usr/app/ \
