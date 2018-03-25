@@ -9,8 +9,8 @@ RUN mkdir -p /usr/app/config
 WORKDIR /usr/app
 
 # Bundle app
-RUN cp ./package.json /usr/app/ \
-   && cp -r src /usr/app/src
+COPY ./package.json /usr/app/
+COPY ./src /usr/app/src
 
 COPY ./config/opal.algoservice.test.config.js /usr/app/config/opal.algoservice.config.js
 
