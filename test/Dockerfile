@@ -26,4 +26,3 @@ RUN cat /root/.npm/_logs/*; exit 0;
 
 # Run compute service
 EXPOSE 80
-CMD [ "npm", "start" ]
