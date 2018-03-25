@@ -24,5 +24,5 @@ RUN npm install; exit 0;
 RUN cat /root/.npm/_logs/*; exit 0;
 
 
-# Run compute service
-EXPOSE 80
+# Run algo service
+EXPOSE 3001
