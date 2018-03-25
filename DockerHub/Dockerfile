@@ -14,10 +14,10 @@ RUN git clone -b master https://github.com/aoehmichen/OPAL-AlgoService
 WORKDIR /root/OPAL-AlgoService
 
 # Bundle app
-COPY ./package.json /usr/app/
-COPY ./src /usr/app/src
+RUN cp package.json /usr/app/ \
+    && cp -r src /usr/app/src
 
-COPY ./config/opal.algoservice.test.config.js /usr/app/config/opal.algoservice.config.js
+RUN cp config/opal.algoservice.test.config.js /usr/app/config/opal.algoservice.config.js
 
 WORKDIR /usr/app
 
