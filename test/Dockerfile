@@ -11,7 +11,8 @@ WORKDIR /usr/app
 # Bundle app
 COPY ./package.json /usr/app/
 COPY ./src /usr/app/src
-
+COPY ./.eslintrc /usr/app/.eslintrc
+COPY ./test/*.js /usr/app/test/
 COPY ./config/opal.algoservice.test.config.js /usr/app/config/opal.algoservice.config.js
 
 WORKDIR /usr/app
