@@ -75,7 +75,7 @@ FieldChecker.prototype.check = function (req, reqType) {
  * @private
  * @pure
  */
-FieldChecker.prototype._checkGET = function (req) {
+FieldChecker.prototype._checkGET = function (_unused__req) {
     let _this = this;
     throw 'Check field for GET request for the field ' + _this._fieldName + ' must be implemented in child class';
 };
@@ -88,7 +88,7 @@ FieldChecker.prototype._checkGET = function (req) {
  * @private
  * @pure
  */
-FieldChecker.prototype._checkPOST = function (req) {
+FieldChecker.prototype._checkPOST = function (_unused__req) {
     let _this = this;
     throw 'Check field for POST request for the field ' + _this._fieldName + ' must be implemented in child class';
 };
@@ -101,7 +101,7 @@ FieldChecker.prototype._checkPOST = function (req) {
  * @private
  * @pure
  */
-FieldChecker.prototype._checkUPDATE = function (req) {
+FieldChecker.prototype._checkUPDATE = function (_unused__req) {
     let _this = this;
     throw 'Check field for UPDATE request for the field ' + _this._fieldName + ' must be implemented in child class';
 };
@@ -114,7 +114,7 @@ FieldChecker.prototype._checkUPDATE = function (req) {
  * @private
  * @pure
  */
-FieldChecker.prototype._checkDELETE = function (req) {
+FieldChecker.prototype._checkDELETE = function (_unused__req) {
     let _this = this;
     throw 'Check field for DELETE request for the field ' + _this._fieldName + ' must be implemented in child class';
 };

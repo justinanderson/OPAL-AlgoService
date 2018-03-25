@@ -3,7 +3,7 @@ const mongodb = require('mongodb').MongoClient;
 const express = require('express');
 const body_parser = require('body-parser');
 const { ErrorHelper, StatusHelper, Constants } =  require('eae-utils');
-const { Constants_Opal } = require('opal-utils')
+const { Constants_Opal } = require('opal-utils');
 
 const package_json = require('../package.json');
 const StatusController = require('./statusController.js');
@@ -133,8 +133,8 @@ OpalAlgoService.prototype._setupAlgoController = function() {
     _this.app.post('/add', _this.algoController.addAlgo); // POST new algorithm
     _this.app.put('/update', _this.algoController.updateAlgo); // UPDATE algorithm
     _this.app.get('/list', _this.algoController.listAlgo); // List all algorithms
-    _this.app.get('/retrieve/:algoName([a-z0-9\-]+)/:version([0-9]+)?/', _this.algoController.retrieveAlgo); // Retrieve algo
-    _this.app.delete('/remove/:algoName([a-z0-9\-]+)/:version([0-9]+)?/', _this.algoController.removeAlgo); // Remove algo
+    _this.app.get('/retrieve/:algoName([a-z0-9-]+)/:version([0-9]+)?/', _this.algoController.retrieveAlgo); // Retrieve algo
+    _this.app.delete('/remove/:algoName([a-z0-9-]+)/:version([0-9]+)?/', _this.algoController.removeAlgo); // Remove algo
 };
 
 module.exports = OpalAlgoService;

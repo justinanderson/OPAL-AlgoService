@@ -47,14 +47,12 @@ RequestChecker.prototype.checkRequest = function (req) {
     return new Promise(function(resolve, reject){
         let checkPromises = [];
         for (const entry of _this.fieldCheckersArray.entries()){
-            let fieldName, fieldChecker;
-            fieldName = entry[0];
+            let fieldChecker;
             fieldChecker = entry[1];
-            checkPromises.push(fieldChecker.check(req, _this._reqType))
-
+            checkPromises.push(fieldChecker.check(req, _this._reqType));
         }
         Promise.all(checkPromises)
-            .then(function(success){
+            .then(function(_unused__success){
                 resolve(true);
             })
             .catch(function(error){

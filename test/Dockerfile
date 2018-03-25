@@ -13,6 +13,7 @@ COPY ./package.json /usr/app/
 COPY ./src /usr/app/src
 COPY ./.eslintrc /usr/app/.eslintrc
 COPY ./test/*.js /usr/app/test/
+COPY ./test/algorithms /usr/app/test/algorithms
 COPY ./config/opal.algoservice.test.config.js /usr/app/config/opal.algoservice.config.js
 
 WORKDIR /usr/app
