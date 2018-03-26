@@ -2,7 +2,9 @@
 FROM node:stretch
 
 # Install all dependencies
-RUN apt-get update -q && apt-get upgrade -y --no-install-recommends
+RUN apt-get update -q \
+    && apt-get upgrade -y --no-install-recommends \
+    && apt-get install -y netcat
 
 # Create app directories
 RUN mkdir -p /usr/app/config
