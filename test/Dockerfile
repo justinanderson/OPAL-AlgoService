@@ -4,6 +4,9 @@ FROM node:stretch
 # Install all dependencies
 RUN apt-get update -q && apt-get upgrade -y --no-install-recommends
 
+RUN apt-get install -y apt-utils
+RUN apt-get install -y netcat
+
 # Create app directories
 RUN mkdir -p /usr/app/config
 WORKDIR /usr/app
@@ -25,6 +28,7 @@ RUN mkdir data
 RUN npm install; exit 0;
 RUN cat /root/.npm/_logs/*; exit 0;
 
-
 # Run algo service
 EXPOSE 3001
+
+CMD sh -c './src/wait-for.sh mongodb:27017 -- echo "server started"'
