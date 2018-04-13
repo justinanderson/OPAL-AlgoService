@@ -20,7 +20,7 @@ before_script:
 
 script:
   - docker-compose -f ./test/docker-compose.yml run tests npm run lint
-  - docker-compose -f ./test/docker-compose.yml run tests bash ./src/wait-for.sh mongo:27017 -- npm test
+  - docker-compose -f ./test/docker-compose.yml run tests npm test
 
 after_script:
   - docker-compose -f ./test/docker-compose.yml down --rmi all --remove-orphans
