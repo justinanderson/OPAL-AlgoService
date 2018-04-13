@@ -40,10 +40,14 @@ AlgoNameChecker.prototype._checkPOST = function (req) {
         } else{
             if (_this.regexp.test(algoName)) {
                 _this._algoCollection.count({'algoName': algoName}, function (err, count) {
-                    if (count == 0) {
-                        resolve(true);
+                    if (err){
+                        reject(ErrorHelper('Error in db', err));
                     } else {
-                        reject(ErrorHelper('algoName `' + algoName + '` already exists in DB. Use /update to update the algorithm'));
+                        if (count == 0) {
+                            resolve(true);
+                        } else {
+                            reject(ErrorHelper('algoName `' + algoName + '` already exists in DB. Use /update to update the algorithm'));
+                        }
                     }
                 });
             } else {

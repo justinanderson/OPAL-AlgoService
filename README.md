@@ -1,5 +1,7 @@
 # OPAL-AlgoService
 
+[![Build Status](https://travis-ci.org/OPAL-Project/OPAL-AlgoService.svg?branch=master)](https://travis-ci.org/OPAL-Project/OPAL-AlgoService)
+
 OPAL-AlgoService is designed to save python code for algorithms for usage in OPAL-Compute. We provide functionalities such as 
 
 - Adding an algorithm
