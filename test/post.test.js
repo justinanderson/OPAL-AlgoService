@@ -27,70 +27,6 @@ beforeEach(function () {
     return testUtils.emptyCollection();
 });
 
-test('AlgoName with capital characters', function(done) {
-    request({
-        method: 'POST',
-        baseUrl: 'http://127.0.0.1:' + ts.config.port,
-        uri: '/add',
-        body: testUtils.getPostData({algoName: 'pop-Density'}),
-        json: true
-        }, function(error, response, body) {
-            if (error) {
-                done.fail(error.toString());
-            }
-            expect(response).toBeDefined();
-            expect(response.statusCode).toEqual(400);
-            done();
-        });
-});
-
-test('AlgoName with special characters except hyphens', function(done) {
-    request({
-        method: 'POST',
-        baseUrl: 'http://127.0.0.1:' + ts.config.port,
-        uri: '/add',
-        body: testUtils.getPostData({algoName: 'pop_density'}),
-        json: true
-    }, function(error, response, body) {
-        if (error) {
-            done.fail(error.toString());
-        }
-        expect(response).toBeDefined();
-        expect(response.statusCode).toEqual(400);
-        done();
-    });
-});
-
-test('Already inserted algoName.', function(done) {
-    request({
-        method: 'POST',
-        baseUrl: 'http://127.0.0.1:' + ts.config.port,
-        uri: '/add',
-        body: testUtils.getPostData(),
-        json: true
-    }, function(error, response, body) {
-        if (error) {
-            done.fail(error.toString());
-        }
-        expect(response).toBeDefined();
-        expect(response.statusCode).toEqual(200);
-        request({
-            method: 'POST',
-            baseUrl: 'http://127.0.0.1:' + ts.config.port,
-            uri: '/add',
-            body: testUtils.getPostData(),
-            json: true
-        }, function(error, response, body) {
-            if (error) {
-                done.fail(error.toString());
-            }
-            expect(response).toBeDefined();
-            expect(response.statusCode).toEqual(400);
-            done();
-        });
-    });
-});
-
 test('Undefined description', function(done) {
     request({
         method: 'POST',
@@ -207,6 +143,71 @@ test('Code with invalid reducer', function (done) {
         expect(response).toBeDefined();
         expect(response.statusCode).toEqual(400);
         done();
+    });
+});
+
+
+test('AlgoName with capital characters', function(done) {
+    request({
+        method: 'POST',
+        baseUrl: 'http://127.0.0.1:' + ts.config.port,
+        uri: '/add',
+        body: testUtils.getPostData({algoName: 'pop-Density'}),
+        json: true
+    }, function(error, response, body) {
+        if (error) {
+            done.fail(error.toString());
+        }
+        expect(response).toBeDefined();
+        expect(response.statusCode).toEqual(400);
+        done();
+    });
+});
+
+test('AlgoName with special characters except hyphens', function(done) {
+    request({
+        method: 'POST',
+        baseUrl: 'http://127.0.0.1:' + ts.config.port,
+        uri: '/add',
+        body: testUtils.getPostData({algoName: 'pop_density'}),
+        json: true
+    }, function(error, response, body) {
+        if (error) {
+            done.fail(error.toString());
+        }
+        expect(response).toBeDefined();
+        expect(response.statusCode).toEqual(400);
+        done();
+    });
+});
+
+test('Already inserted algoName.', function(done) {
+    request({
+        method: 'POST',
+        baseUrl: 'http://127.0.0.1:' + ts.config.port,
+        uri: '/add',
+        body: testUtils.getPostData(),
+        json: true
+    }, function(error, response, body) {
+        if (error) {
+            done.fail(error.toString());
+        }
+        expect(response).toBeDefined();
+        expect(response.statusCode).toEqual(200);
+        request({
+            method: 'POST',
+            baseUrl: 'http://127.0.0.1:' + ts.config.port,
+            uri: '/add',
+            body: testUtils.getPostData(),
+            json: true
+        }, function(error, response, body) {
+            if (error) {
+                done.fail(error.toString());
+            }
+            expect(response).toBeDefined();
+            expect(response.statusCode).toEqual(400);
+            done();
+        });
     });
 });
 

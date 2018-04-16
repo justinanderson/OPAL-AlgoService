@@ -15,10 +15,12 @@ install:
   - docker-compose -f ./test/docker-compose.yml images
 
 before_script:
+  - docker-compose -f ./test/docker-compose.yml up tests
   - docker ps -a
 
 script:
-  - docker-compose -f ./test/docker-compose.yml up tests
+  - docker-compose -f ./test/docker-compose.yml run tests npm run lint
+  - docker-compose -f ./test/docker-compose.yml run tests npm test
 
 after_script:
   - docker-compose -f ./test/docker-compose.yml down --rmi all --remove-orphans

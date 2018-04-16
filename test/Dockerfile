@@ -31,4 +31,4 @@ RUN cat /root/.npm/_logs/*; exit 0;
 # Run algo service
 EXPOSE 3001
 
-CMD npm run lint && sh -c './src/wait-for.sh mongodb:27017 -- npm test'
+CMD sh -c './src/wait-for.sh mongodb:27017 -- echo "Server started"'
