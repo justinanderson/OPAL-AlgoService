@@ -97,11 +97,7 @@ OpalAlgoService.prototype._connectDb = function() {
                 reject(ErrorHelper('Failed to connect to mongoDB', err));
             } else {
                 _this.db = db;
-                _this.db.createCollection(Constants_Opal.OPAL_ALGO_COLLECTION, {
-                    strict: true
-                }, function(_unused__err, _unused__collection) {
-                    resolve(true);
-                });
+                resolve(true);
             }
         });
     });

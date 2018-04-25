@@ -1,9 +1,7 @@
 let express = require('express');
 let OpalAlgobank = require('../src/opalAlgoService.js');
 let config = require('../config/opal.algoservice.config.js');
-let ObjectID = require('mongodb').ObjectID;
-const fs = require('fs');
-const path = require('path');
+const { Constants_Opal } = require('opal-utils');
 
 function TestServer() {
     // Bind member vars
@@ -32,7 +30,11 @@ TestServer.prototype.run = function() {
                 if (error)
                     reject(error);
                 else {
-                    resolve(true);
+                    _this.mongo().createCollection(Constants_Opal.OPAL_ALGO_COLLECTION, {
+                        strict: true
+                    }, function(_unused__err, _unused__collection) {
+                        resolve(true);
+                    });
                 }
             });
         }, function (error) {
