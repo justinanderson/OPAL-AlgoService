@@ -1,9 +1,7 @@
 let express = require('express');
 let OpalAlgobank = require('../src/opalAlgoService.js');
 let config = require('../config/opal.algoservice.config.js');
-let ObjectID = require('mongodb').ObjectID;
-const fs = require('fs');
-const path = require('path');
+const { Constants_Opal } = require('opal-utils');
 
 function TestServer() {
     // Bind member vars
