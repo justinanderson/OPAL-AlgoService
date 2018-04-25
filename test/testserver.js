@@ -32,7 +32,7 @@ TestServer.prototype.run = function() {
                 if (error)
                     reject(error);
                 else {
-                    _this.db.createCollection(Constants_Opal.OPAL_ALGO_COLLECTION, {
+                    _this.mongo().createCollection(Constants_Opal.OPAL_ALGO_COLLECTION, {
                         strict: true
                     }, function(_unused__err, _unused__collection) {
                         resolve(true);

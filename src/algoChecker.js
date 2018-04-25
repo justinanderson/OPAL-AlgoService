@@ -1,5 +1,6 @@
 // Algorithm Python Script Checker
 const { ErrorHelper } = require('eae-utils');
+const { Constants_Opal } = require('opal-utils');
 const FieldChecker = require('./fieldChecker.js');
 
 /**
@@ -22,7 +23,10 @@ function AlgoChecker(algoCollection) {
 
     this._classNameRegex = new RegExp('^[A-Za-z0-9_]+$');
 
-    this._reducerMethods = ['count', 'matrix']; // TODO: Modify this using constants from opal-utils
+    this._reducerMethods = [
+        Constants_Opal.OPAL_AGGREGATION_METHOD_COUNT,
+        Constants_Opal.OPAL_AGGREGATION_METHOD_SUM
+    ];
 
     this._checkAll = AlgoChecker.prototype._checkAll.bind(this);
     this._removeComments = AlgoChecker.prototype._removeComments.bind(this);
