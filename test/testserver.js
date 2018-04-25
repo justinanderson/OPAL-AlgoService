@@ -32,7 +32,11 @@ TestServer.prototype.run = function() {
                 if (error)
                     reject(error);
                 else {
-                    resolve(true);
+                    _this.db.createCollection(Constants_Opal.OPAL_ALGO_COLLECTION, {
+                        strict: true
+                    }, function(_unused__err, _unused__collection) {
+                        resolve(true);
+                    });
                 }
             });
         }, function (error) {
