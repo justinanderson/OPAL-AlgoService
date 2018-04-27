@@ -65,7 +65,7 @@ AlgoController.prototype.addAlgo = function(req, res) {
             let version = 1;
             _this._saveAlgo(algoName, version, code, false)
                 .then(function (fpath) {
-                    _this._insertDB(algoName, version, req.body.description, fpath, req.body.algorithm.className)
+                    _this._insertDB(algoName, version, req.body.description, fpath, req.body.algorithm.className, req.body.algorithm.reducer)
                         .then(function (item) {
                             res.status(200);
                             res.json({ok: true, item: item});
@@ -106,7 +106,7 @@ AlgoController.prototype.updateAlgo = function(req, res) {
                     version = result[0].version + 1;
                     _this._saveAlgo(algoName, version, code, true)
                         .then(function (fpath) {
-                            _this._insertDB(algoName, version, req.body.description, fpath, req.body.algorithm.className)
+                            _this._insertDB(algoName, version, req.body.description, fpath, req.body.algorithm.className, req.body.algorithm.reducer)
                                 .then(function (item) {
                                     res.status(200);
                                     res.json({ok: true, item: item});
@@ -165,7 +165,7 @@ AlgoController.prototype._saveAlgo = function(algoName, version, code, update) {
  * @return {Promise<any>} resolves with inserted item, rejects with an error
  * @private
  */
-AlgoController.prototype._insertDB = function (algoName, version, description, fpath, className) {
+AlgoController.prototype._insertDB = function (algoName, version, description, fpath, className, reducer) {
     let _this = this;
     return new Promise(function (resolve, reject) {
         _this._algoCollection.insert({
@@ -174,7 +174,8 @@ AlgoController.prototype._insertDB = function (algoName, version, description, f
             'description': description,
             'algorithm': {
                 'code': fpath,
-                'className': className
+                'className': className,
+                'reducer': reducer
             }
         }, function (err, item) {
             if (err != null) {
