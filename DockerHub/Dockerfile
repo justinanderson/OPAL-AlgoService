@@ -32,4 +32,4 @@ RUN cat /root/.npm/_logs/*; exit 0;
 
 
 # Run compute service
-EXPOSE 3001
+EXPOSE 80
