@@ -19,8 +19,6 @@ WORKDIR /root/OPAL-AlgoService
 RUN cp package.json /usr/app/ \
     && cp -r src /usr/app/src
 
-RUN cp config/opal.algoservice.test.config.js /usr/app/config/opal.algoservice.config.js
-
 WORKDIR /usr/app
 
 # We create the folder for the savePath
