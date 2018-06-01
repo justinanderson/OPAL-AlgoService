@@ -1,5 +1,5 @@
 # Select source image
-FROM node:stretch
+FROM node:stretch@sha256:0bc839ede6e5f4e997cb32b0727cc908070be6e57a43e5572cc27f6a2c368348
 
 # Install all dependencies
 RUN apt-get update -q \
