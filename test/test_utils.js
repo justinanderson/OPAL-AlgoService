@@ -1,7 +1,7 @@
 // Utilities for testing
 const opalutils = require('opal-utils');
 const fs = require('fs');
-
+let config = require('../config/opal.algoservice.config.js');
 
 /**
  * @class TestUtils
@@ -26,6 +26,7 @@ TestUtils.prototype.getPostData = function (data) {
     let _this = this;
     data = data ? data : {};
     let filename = data.hasOwnProperty('filename') ? data.filename : 'test/algorithms/popDensity.py';
+    let privacyFilename = data.hasOwnProperty('privacyFilename') ? data.privacyFilename : 'test/privacyalgorithms/density.py';
     return {
         algoName: data.hasOwnProperty('algoName') ? data.algoName : 'pop-density',
         description: data.hasOwnProperty('description') ? data.description : 'Population density',
@@ -33,6 +34,11 @@ TestUtils.prototype.getPostData = function (data) {
             code: _this.getFileBase64(filename),
             className: data.hasOwnProperty('className') ? data.className : 'PopulationDensity',
             reducer: data.hasOwnProperty('reducer') ? data.reducer : opalutils.Constants_Opal.OPAL_AGGREGATION_METHOD_SUM
+        },
+        privacyAlgorithm: data.hasOwnProperty('privacyAlgorithm') ? data.privacyAlgorithm : {
+            code: _this.getFileBase64(privacyFilename),
+            className: 'Density',
+            key: data.hasOwnProperty('key') ? data.key : config.key
         }
     };
 };

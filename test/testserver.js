@@ -24,8 +24,8 @@ TestServer.prototype.run = function() {
         _this.opal_algobank = new OpalAlgobank(config);
 
         // Start server
-        _this.opal_algobank.start().then(function (compute_router) {
-            _this._app.use(compute_router);
+        _this.opal_algobank.start().then(function (router) {
+            _this._app.use(router);
             _this._server = _this._app.listen(config.port, function (error) {
                 if (error)
                     reject(error);

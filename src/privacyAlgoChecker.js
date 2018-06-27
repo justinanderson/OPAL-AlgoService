@@ -1,17 +1,16 @@
-// Algorithm Python Script Checker
+// Privacy Algorithm Python Script Checker
 const { ErrorHelper } = require('eae-utils');
-const { Constants_Opal } = require('opal-utils');
 const FieldChecker = require('./fieldChecker.js');
 const PythonCodeChecker = require('./pythonCodeChecker.js');
 
 /**
- * @class AlgoChecker
+ * @class PrivacyAlgoChecker
  * @desc Check if algorithm is correct and satisfies all limitations. Algorithm has two parts code and className.
  * @param algoCollection MongoDb collection
  * @constructor
  */
-function AlgoChecker(algoCollection) {
-    let fieldName = 'algorithm';
+function PrivacyAlgoChecker(algoCollection) {
+    let fieldName = 'privacyAlgorithm';
     FieldChecker.call(this, fieldName, algoCollection);
 
     this._restrictedLibraries = [
@@ -23,20 +22,15 @@ function AlgoChecker(algoCollection) {
     ];
 
     this._classNameRegex = new RegExp('^[A-Za-z0-9_]+$');
-    this._baseClass = 'OPALAlgorithm';
-
-    this._reducerMethods = [
-        Constants_Opal.OPAL_AGGREGATION_METHOD_COUNT,
-        Constants_Opal.OPAL_AGGREGATION_METHOD_SUM
-    ];
+    this._baseClass = 'OPALPrivacy';
 
     this._pythonCodeChecker = new PythonCodeChecker();
-    this._checkAll = AlgoChecker.prototype._checkAll.bind(this);
-    this._checkReducer = AlgoChecker.prototype._checkReducer.bind(this);
+    this._checkAll = PrivacyAlgoChecker.prototype._checkAll.bind(this);
+    this._checkKey = PrivacyAlgoChecker.prototype._checkKey.bind(this);
 }
 
-AlgoChecker.prototype = Object.create(FieldChecker.prototype); // Inheritance
-AlgoChecker.prototype.constructor = AlgoChecker;
+PrivacyAlgoChecker.prototype = Object.create(FieldChecker.prototype); // Inheritance
+PrivacyAlgoChecker.prototype.constructor = PrivacyAlgoChecker;
 
 /**
  * @fn _checkAll
@@ -45,51 +39,48 @@ AlgoChecker.prototype.constructor = AlgoChecker;
  * @return {Promise<any>}
  * @private
  */
-AlgoChecker.prototype._checkAll = function (req) {
+PrivacyAlgoChecker.prototype._checkAll = function (req) {
     let _this = this;
     return new Promise(function (resolve, reject) {
-        let algorithm = req.body ? req.body.algorithm : undefined;
-        if (algorithm) {
+        let algorithm = req.body ? req.body.privacyAlgorithm : undefined;
+        if (algorithm !== null && algorithm !== undefined) {
             let promiseList = [];
             promiseList.push(_this._pythonCodeChecker.checkClassName(algorithm));
             promiseList.push(_this._pythonCodeChecker.checkCode(
                 algorithm, _this._restrictedLibraries, _this._mustHaveLibraries, _this._baseClass));
-            promiseList.push(_this._checkReducer(algorithm));
+            promiseList.push(_this._checkKey(algorithm));
             Promise.all(promiseList)
                 .then(function (success) {
                     resolve(success);
                 }, function (error) {
-                    reject(ErrorHelper('Error in algorithm.', error));
+                    reject(ErrorHelper('Error in privacy algorithm.', error));
                 });
         } else {
-            reject(ErrorHelper('algorithm not available.'));
+            resolve(true);
         }
-
     });
 };
 
 /**
- * @fn _checkReducer
- * @desc Check if reducer mentioned is correct, must be amongst valid choices.
+ * @fn _checkKey
+ * @desc Check if key mentioned is correct, must be same as in config file.
  * @param algorithm {JSON}
  * @return {Promise<any>} resolves with true, rejects with error.
  * @private
  */
-AlgoChecker.prototype._checkReducer = function (algorithm) {
-    let _this = this;
+PrivacyAlgoChecker.prototype._checkKey = function (algorithm) {
     return new Promise(function (resolve, reject){
-        let reducer = algorithm ? algorithm.reducer : undefined;
-        if (reducer === undefined) {
-            reject(ErrorHelper('reducer not available'));
+        let key = algorithm ? algorithm.key : undefined;
+        if (key === undefined || key === null) {
+            reject(ErrorHelper('key not available'));
         } else {
-            if (_this._reducerMethods.includes(reducer)) {
+            if (key === global.opal_algoservice_config.key) {
                 resolve(true);
             } else {
-                reject(ErrorHelper('reducer must be from ' + _this._reducerMethods.toString()));
+                reject(ErrorHelper('invalid key.'));
             }
         }
     });
 };
 
-
-module.exports = AlgoChecker;
+module.exports = PrivacyAlgoChecker;

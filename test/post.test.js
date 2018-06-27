@@ -40,6 +40,7 @@ test('Correct description, algoName and algorithm', function(done) {
             done.fail(error.toString());
         }
         expect(fs.existsSync(body.item.ops[0].algorithm.code)).toBeTruthy();
+        expect(fs.existsSync(body.item.ops[0].privacyAlgorithm.code)).toBeTruthy();
         expect(response).toBeDefined();
         expect(response.statusCode).toEqual(200);
         done();
@@ -219,6 +220,40 @@ test('Code with invalid reducer', function (done) {
         baseUrl: 'http://127.0.0.1:' + ts.config.port,
         uri: '/add',
         body: testUtils.getPostData({reducer: 'reducer'}),
+        json: true
+    }, function(error, response, body) {
+        if (error) {
+            done.fail(error.toString());
+        }
+        expect(response).toBeDefined();
+        expect(response.statusCode).toEqual(400);
+        done();
+    });
+});
+
+test('Code with no privacy function', function (done) {
+    request({
+        method: 'POST',
+        baseUrl: 'http://127.0.0.1:' + ts.config.port,
+        uri: '/add',
+        body: testUtils.getPostData({privacyAlgorithm: null}),
+        json: true
+    }, function(error, response, body) {
+        if (error) {
+            done.fail(error.toString());
+        }
+        expect(response).toBeDefined();
+        expect(response.statusCode).toEqual(200);
+        done();
+    });
+});
+
+test('Code with wrong key.', function (done) {
+    request({
+        method: 'POST',
+        baseUrl: 'http://127.0.0.1:' + ts.config.port,
+        uri: '/add',
+        body: testUtils.getPostData({key: 'wrongkey'}),
         json: true
     }, function(error, response, body) {
         if (error) {

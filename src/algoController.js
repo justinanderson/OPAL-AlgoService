@@ -1,5 +1,6 @@
 // Controls interaction with algorithm bank
 const { ErrorHelper } =  require('eae-utils');
+const { Helpers } = require('opal-utils');
 const PostRequestChecker = require('./postRequestChecker.js');
 const UpdateRequestChecker = require('./updateRequestChecker.js');
 const ListRequestChecker = require('./listRequestChecker.js');
@@ -44,7 +45,42 @@ function AlgoController(algoCollection, statusHelper) {
     this._insertDB = AlgoController.prototype._insertDB.bind(this);
     this._getAlgo = AlgoController.prototype._getAlgo.bind(this);
     this._removeAlgo = AlgoController.prototype._removeAlgo.bind(this);
+    this._createAlgorithmObj = AlgoController.prototype._createAlgorithmObj.bind(this);
+    this._createPrivacyAlgorithmObj = AlgoController.prototype._createPrivacyAlgorithmObj.bind(this);
+    this._readCode = AlgoController.prototype._readCode.bind(this);
 }
+
+/**
+ * @fn _createPrivacyAlgorithmObj
+ * @desc Create privacy algorithm object to insert into the database
+ * @param codePath {string} Path to the code file
+ * @param className {string} Name of the class to be used
+ * @returns {{code: *, className: *}}
+ * @private
+ */
+AlgoController.prototype._createPrivacyAlgorithmObj = function (codePath, className) {
+    return {
+        'code': codePath,
+        'className': className
+    };
+};
+
+/**
+ * @fn _createAlgorithmObj
+ * @desc Create algorithm object to insert into database
+ * @param codePath {string} Path to the code file
+ * @param className {string} Name of the algorithm class in the database
+ * @param reducer {string} Reducer to be used
+ * @returns {{code: *, className: *, reducer: *}}
+ * @private
+ */
+AlgoController.prototype._createAlgorithmObj = function(codePath, className, reducer) {
+    return {
+        'code': codePath,
+        'className': className,
+        'reducer': reducer
+    };
+};
 
 /**
  * @fn addAlgo
@@ -60,18 +96,27 @@ AlgoController.prototype.addAlgo = function(req, res) {
 
     _this.postRequestChecker.checkRequest(req)
         .then(function () {
-            let code = _this.postRequestChecker.fieldCheckersArray.get('algorithm').convBase64ToUTF8(req.body.algorithm.code);
+            let code = Helpers.ConvBase64ToUTF8(req.body.algorithm.code);
+            let privacyCode = req.body.privacyAlgorithm ? Helpers.ConvBase64ToUTF8(req.body.privacyAlgorithm.code) : null;
             let algoName = req.body.algoName;
             let version = 1;
-            _this._saveAlgo(algoName, version, code, false)
+            _this._saveAlgo(algoName, version, code, false, false)
                 .then(function (fpath) {
-                    _this._insertDB(algoName, version, req.body.description, fpath, req.body.algorithm.className, req.body.algorithm.reducer)
-                        .then(function (item) {
-                            res.status(200);
-                            res.json({ok: true, item: item});
+                    _this._saveAlgo(algoName, version, privacyCode, false, true)
+                        .then(function (privacyPath) {
+                            let algorithmObj = _this._createAlgorithmObj(fpath, req.body.algorithm.className, req.body.algorithm.reducer);
+                            let privacyAlgorithmObj = privacyPath ? _this._createPrivacyAlgorithmObj(privacyPath, req.body.privacyAlgorithm.className) : null;
+                            _this._insertDB(algoName, version, req.body.description, algorithmObj, privacyAlgorithmObj)
+                                .then(function (item) {
+                                    res.status(200);
+                                    res.json({ok: true, item: item});
+                                }, function (error) {
+                                    res.status(500);
+                                    res.json(error);
+                                });
                         }, function (error) {
                             res.status(500);
-                            res.json(error);
+                            res.json(ErrorHelper('Internal server error', error));
                         });
                 }, function (error) {
                     res.status(500);
@@ -95,7 +140,8 @@ AlgoController.prototype.updateAlgo = function(req, res) {
 
     _this.updateRequestChecker.checkRequest(req)
         .then(function () {
-            let code = _this.updateRequestChecker.fieldCheckersArray.get('algorithm').convBase64ToUTF8(req.body.algorithm.code);
+            let code = Helpers.ConvBase64ToUTF8(req.body.algorithm.code);
+            let privacyCode = req.body.privacyAlgorithm ? Helpers.ConvBase64ToUTF8(req.body.privacyAlgorithm.code) : null;
             let algoName = req.body.algoName;
             let version = 1;
             _this._algoCollection.find({algoName: algoName}, {version: 1, _id: 0}).sort({version: -1}).limit(1).toArray(function (err, result) {
@@ -104,15 +150,23 @@ AlgoController.prototype.updateAlgo = function(req, res) {
                    res.json(ErrorHelper('Unable to read from DB', err));
                 } else {
                     version = result[0].version + 1;
-                    _this._saveAlgo(algoName, version, code, true)
+                    _this._saveAlgo(algoName, version, code, true, false)
                         .then(function (fpath) {
-                            _this._insertDB(algoName, version, req.body.description, fpath, req.body.algorithm.className, req.body.algorithm.reducer)
-                                .then(function (item) {
-                                    res.status(200);
-                                    res.json({ok: true, item: item});
+                            _this._saveAlgo(algoName, version, privacyCode, true, true)
+                                .then(function (privacyPath) {
+                                    let algorithmObj = _this._createAlgorithmObj(fpath, req.body.algorithm.className, req.body.algorithm.reducer);
+                                    let privacyAlgorithmObj = privacyPath ? _this._createPrivacyAlgorithmObj(privacyPath, req.body.privacyAlgorithm.className) : null;
+                                    _this._insertDB(algoName, version, req.body.description, algorithmObj, privacyAlgorithmObj)
+                                        .then(function (item) {
+                                            res.status(200);
+                                            res.json({ok: true, item: item});
+                                        }, function (error) {
+                                            res.status(500);
+                                            res.json(error);
+                                        });
                                 }, function (error) {
                                     res.status(500);
-                                    res.json(error);
+                                    res.json(ErrorHelper('Internal server error', error));
                                 });
                         }, function (error) {
                             res.status(500);
@@ -134,23 +188,33 @@ AlgoController.prototype.updateAlgo = function(req, res) {
  * @param version {int} Version of the code
  * @param code {string} Python code to be saved
  * @param update {boolean} Is it the update call or add call. Add call will as well create folders.
+ * @param privacy {boolean} Is it the privacy code.
  * @return {Promise<any>}
  * @private
  */
-AlgoController.prototype._saveAlgo = function(algoName, version, code, update) {
+AlgoController.prototype._saveAlgo = function(algoName, version, code, update, privacy) {
     return new Promise(function (resolve, reject) {
-        let saveFolder = path.join(global.opal_algoservice_config.savePath, algoName);
-        if (!update && !fs.existsSync(saveFolder)) {
-            fs.mkdirSync(saveFolder);
-        }
-        let saveFile = path.join(saveFolder, 'v' + version.toString() + '.py');
-        fs.writeFile(saveFile, code, 'utf8', function (err) {
-            if (err) {
-                reject(ErrorHelper('Error in saving file', err));
-            } else {
-                resolve(saveFile);
+        if (code !== null && code !== undefined) {
+            let saveFolder = path.join(global.opal_algoservice_config.savePath, algoName);
+            if (!update && !fs.existsSync(saveFolder)) {
+                fs.mkdirSync(saveFolder);
             }
-        });
+            let saveFile;
+            if (privacy) {
+                saveFile = path.join(saveFolder, 'privacy_v' + version.toString() + '.py');
+            } else {
+                saveFile = path.join(saveFolder, 'v' + version.toString() + '.py');
+            }
+            fs.writeFile(saveFile, code, 'utf8', function (err) {
+                if (err) {
+                    reject(ErrorHelper('Error in saving file', err));
+                } else {
+                    resolve(saveFile);
+                }
+            });
+        } else {
+            resolve(undefined);
+        }
     });
 };
 
@@ -160,23 +224,20 @@ AlgoController.prototype._saveAlgo = function(algoName, version, code, update) {
  * @param algoName {string} Name of the algorithm
  * @param version {int} Version of the code
  * @param description {string} Description of the algorithm
- * @param fpath {string} Path to the saved code file
- * @param className {string} Name of the class.
+ * @param algorithm {object} Algorithm object
+ * @param privacyAlgorithm {object} Privacy algorithm object
  * @return {Promise<any>} resolves with inserted item, rejects with an error
  * @private
  */
-AlgoController.prototype._insertDB = function (algoName, version, description, fpath, className, reducer) {
+AlgoController.prototype._insertDB = function (algoName, version, description, algorithm, privacyAlgorithm) {
     let _this = this;
     return new Promise(function (resolve, reject) {
         _this._algoCollection.insert({
             'algoName': algoName,
             'version': version,
             'description': description,
-            'algorithm': {
-                'code': fpath,
-                'className': className,
-                'reducer': reducer
-            }
+            'algorithm': algorithm,
+            'privacyAlgorithm': privacyAlgorithm
         }, function (err, item) {
             if (err != null) {
                 reject(ErrorHelper('Unable to insert in DB', err));
@@ -233,17 +294,16 @@ AlgoController.prototype.retrieveAlgo = function (req, res) {
             let version = req.params.version;
             _this._getAlgo(algoName, version).then(
                 function (success) {
-                    fs.readFile(success.algorithm.code, 'utf8').then(
-                        function (data) {
-                            success.algorithm.code = data;
-                            res.status(200);
-                            res.json({
-                                ok: true, item: success
-                            });
-                        }, function (error) {
-                            res.status(500);
-                            res.json(ErrorHelper('Error in reading file ', error));
+                    try {
+                        success = _this._readCode(success);
+                        res.status(200);
+                        res.json({
+                            ok: true, item: success
                         });
+                    } catch (e) {
+                        res.status(500);
+                        res.json(ErrorHelper('Error in reading file ', error));
+                    }
                 }, function (error) {
                     res.status(500);
                     res.json(error);
@@ -287,6 +347,21 @@ AlgoController.prototype._getAlgo = function (algoName, version) {
                 });
         }
     });
+};
+
+/**
+ * @fn _readCode
+ * @desc Read the code from the files in codePath in algorithm object
+ * @param algoObj {Object} Algorithm object from the mongodb
+ * @returns {Object}
+ * @private
+ */
+AlgoController.prototype._readCode = function (algoObj) {
+    algoObj.algorithm.code = fs.readFileSync(algoObj.algorithm.code, 'utf8');
+    if (algoObj.hasOwnProperty('privacyAlgorithm') && algoObj.privacyAlgorithm.hasOwnProperty('code')) {
+        algoObj.privacyAlgorithm.code = fs.readFileSync(algoObj.privacyAlgorithm.code, 'utf8');
+    }
+    return algoObj;
 };
 
 /**

@@ -7,7 +7,7 @@
     "start": "node ./src/index.js",
     "inspect": "node inspect ./src/index.js",
     "lint": "eslint src",
-    "test": "jest --runInBand --verbose --useStderr --forceExit"
+    "test": "jest --runInBand --verbose --useStderr --forceExit --detectOpenHandles"
   },
   "keywords": [
     "OPAL",
@@ -29,7 +29,7 @@
   "homepage": "https://github.com/aoehmichen/OPAL-AlgoService#readme",
   "devDependencies": {
     "babel-core": "6.26.3",
-    "babel-eslint": "8.2.3",
+    "babel-eslint": "^8.2.3",
     "babel-plugin-transform-decorators-legacy": "1.3.5",
     "babel-preset-env": "1.7.0",
     "babel-preset-es2015": "6.24.1",
