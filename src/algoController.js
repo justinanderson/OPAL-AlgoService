@@ -302,7 +302,7 @@ AlgoController.prototype.retrieveAlgo = function (req, res) {
                         });
                     } catch (e) {
                         res.status(500);
-                        res.json(ErrorHelper('Error in reading file ', error));
+                        res.json(ErrorHelper('Error in reading file ', e));
                     }
                 }, function (error) {
                     res.status(500);
