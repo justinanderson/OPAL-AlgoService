@@ -36,7 +36,7 @@
     "babel-preset-stage-0": "6.24.1",
     "eslint": "5.1.0",
     "jest": "23.3.0",
-    "request": "2.87.0"
+    "request": "2.88.0"
   },
   "dependencies": {
     "body-parser": "^1.18.2",
