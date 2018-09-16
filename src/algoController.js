@@ -98,6 +98,8 @@ AlgoController.prototype.addAlgo = function(req, res) {
         .then(function () {
             let code = Helpers.ConvBase64ToUTF8(req.body.algorithm.code);
             let privacyCode = req.body.privacyAlgorithm ? Helpers.ConvBase64ToUTF8(req.body.privacyAlgorithm.code) : null;
+            let signature = req.body.signature ? req.body.signature : null;
+            let publicKey = req.body.publicKey ? req.body.publicKey : null;
             let algoName = req.body.algoName;
             let version = 1;
             _this._saveAlgo(algoName, version, code, false, false)
@@ -106,7 +108,7 @@ AlgoController.prototype.addAlgo = function(req, res) {
                         .then(function (privacyPath) {
                             let algorithmObj = _this._createAlgorithmObj(fpath, req.body.algorithm.className, req.body.algorithm.reducer);
                             let privacyAlgorithmObj = privacyPath ? _this._createPrivacyAlgorithmObj(privacyPath, req.body.privacyAlgorithm.className) : null;
-                            _this._insertDB(algoName, version, req.body.description, algorithmObj, privacyAlgorithmObj)
+                            _this._insertDB(algoName, version, req.body.description, algorithmObj, privacyAlgorithmObj, signature, publicKey)
                                 .then(function (item) {
                                     res.status(200);
                                     res.json({ok: true, item: item});
@@ -142,6 +144,8 @@ AlgoController.prototype.updateAlgo = function(req, res) {
         .then(function () {
             let code = Helpers.ConvBase64ToUTF8(req.body.algorithm.code);
             let privacyCode = req.body.privacyAlgorithm ? Helpers.ConvBase64ToUTF8(req.body.privacyAlgorithm.code) : null;
+            let signature = req.body.signature ? req.body.signature : null;
+            let publicKey = req.body.publicKey ? req.body.publicKey : null;
             let algoName = req.body.algoName;
             let version = 1;
             _this._algoCollection.find({algoName: algoName}, {version: 1, _id: 0}).sort({version: -1}).limit(1).toArray(function (err, result) {
@@ -156,7 +160,7 @@ AlgoController.prototype.updateAlgo = function(req, res) {
                                 .then(function (privacyPath) {
                                     let algorithmObj = _this._createAlgorithmObj(fpath, req.body.algorithm.className, req.body.algorithm.reducer);
                                     let privacyAlgorithmObj = privacyPath ? _this._createPrivacyAlgorithmObj(privacyPath, req.body.privacyAlgorithm.className) : null;
-                                    _this._insertDB(algoName, version, req.body.description, algorithmObj, privacyAlgorithmObj)
+                                    _this._insertDB(algoName, version, req.body.description, algorithmObj, privacyAlgorithmObj, signature, publicKey)
                                         .then(function (item) {
                                             res.status(200);
                                             res.json({ok: true, item: item});
@@ -229,7 +233,7 @@ AlgoController.prototype._saveAlgo = function(algoName, version, code, update, p
  * @return {Promise<any>} resolves with inserted item, rejects with an error
  * @private
  */
-AlgoController.prototype._insertDB = function (algoName, version, description, algorithm, privacyAlgorithm) {
+AlgoController.prototype._insertDB = function (algoName, version, description, algorithm, privacyAlgorithm, signature, publicKey) {
     let _this = this;
     return new Promise(function (resolve, reject) {
         _this._algoCollection.insert({
@@ -237,7 +241,9 @@ AlgoController.prototype._insertDB = function (algoName, version, description, a
             'version': version,
             'description': description,
             'algorithm': algorithm,
-            'privacyAlgorithm': privacyAlgorithm
+            'privacyAlgorithm': privacyAlgorithm,
+            'signature': signature,
+            'publicKey': publicKey
         }, function (err, item) {
             if (err != null) {
                 reject(ErrorHelper('Unable to insert in DB', err));
